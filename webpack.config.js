@@ -1,3 +1,4 @@
+const { resolve } = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin')
@@ -7,6 +8,9 @@ const isProduction = process.env.npm_lifecycle_event === 'build'
 
 module.exports = {
   entry: './src',
+  output: {
+    path: resolve(__dirname, 'build')
+  },
   devtool: !isProduction && 'source-map',
   module: {
     rules: [
@@ -36,6 +40,7 @@ module.exports = {
     })
   ],
   devServer: {
+    contentBase: resolve(__dirname, 'build'),
     stats: 'minimal',
     overlay: true
   }

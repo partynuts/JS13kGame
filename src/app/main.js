@@ -17,7 +17,14 @@ import { setCanvasSize, getImage } from "./helper";
 
   setCanvasSize();
 
+  let score = 0;
   let sprites = [];
+
+  function drawScore() {
+    context.font = "16px Arial";
+    context.fillStyle = "deeppink";
+    context.fillText("Score: "+score, 8, 20);
+  }
 
   function createNuclearStick(x, y, color) {
     let nuclearStick = kontra.Sprite({
@@ -158,11 +165,35 @@ import { setCanvasSize, getImage } from "./helper";
   console.log('Starting game loop...')
   GameLoop({
     update: () => {
-      console.log('update')
+      console.log('update');
+      // collision detection
+      for (let i = 0; i < sprites.length; i++) {
+        // only check for collision against asteroids
+        if (sprites[i].type === 'nuclearStick') {
+          for (let j = 0; j < sprites.length; j++) {
+            // don't check asteroid vs. asteroid collisions
+            if (sprites[j].type !== 'nuclearStick') {
+              let nuclearStick = sprites[i];
+              let marty = sprites[j];
+              // circle vs. circle collision detection
+              let dx = nuclearStick.x - marty.x;
+              let dy = nuclearStick.y - marty.y;
+
+              if (Math.sqrt(dx * dx + dy * dy) < nuclearStick.width + marty.width - 60) {
+                nuclearStick.ttl = 0;
+                score++;
+                console.log(score)
+              }
+            }
+          }
+        }
+      }
+      sprites = sprites.filter(sprite => sprite.isAlive());
       sprites.map(sprite => sprite.update());
     },
     render: () => {
       sprites.map(sprite => sprite.render());
+      drawScore()
     }
   }).start();
 

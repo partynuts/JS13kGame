@@ -32,6 +32,7 @@ npm start
 ```
 
 This will setup a server listening at `http://localhost:8080/`.
+In your browser open `http://localhost:8080/`.
 
 ### Access from another device
 

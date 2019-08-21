@@ -7,7 +7,8 @@ import kontra, {
   imageAssets,
   setImagePath,
   keyPressed,
-  GameLoop
+  GameLoop,
+  TileEngine
 } from "kontra";
 import { setCanvasSize, getImage } from "./helper";
 
@@ -23,7 +24,7 @@ import { setCanvasSize, getImage } from "./helper";
   function drawScore() {
     context.font = "16px Arial";
     context.fillStyle = "deeppink";
-    context.fillText("Score: "+score, 8, 20);
+    context.fillText("Score: " + score, 8, 20);
   }
 
   function createNuclearStick(x, y, color) {
@@ -50,8 +51,8 @@ import { setCanvasSize, getImage } from "./helper";
     sprites.push(nuclearStick);
   }
 
-  for (var i = 0; i < 10; i++) {
-    createNuclearStick(100, 100,  "springgreen");
+  for (var i = 0; i < 40; i++) {
+    createNuclearStick(100, 100, "springgreen");
   }
 
 // setImagePath('assets');
@@ -60,10 +61,10 @@ import { setCanvasSize, getImage } from "./helper";
   // path: imageAssets['assets/imgs/character.png']
   console.log('images', imageAssets)
 
-  const image = await getImage('assets/marty.png');
+  const martyImage = await getImage('assets/marty1.png');
   console.log('Image loaded.')
   const spriteSheet = SpriteSheet({
-    image,
+    image: martyImage,
     type: 'marty',
     frameWidth: 50,
     frameHeight: 52.5,
@@ -80,18 +81,23 @@ import { setCanvasSize, getImage } from "./helper";
       },
 
       speedDown1: {
-        frames: '22..24',  // frames 0 through 9
+        frames: '21..23',  // frames 0 through 9
         frameRate: 3
       },
 
       flyDown: {
-        frames: '18..20',  // frames 0 through 9
+        frames: '36..38',  // frames 0 through 9
+        frameRate: 3
+      },
+
+      flyUp: {
+        frames: '15..17',  // frames 0 through 9
         frameRate: 3
       },
 
       salto: {
-        frames: '25..31',  // frames 0 through 9
-        frameRate: 3
+        frames: '43..52',  // frames 0 through 9
+        frameRate: 4
       },
 
       break: {
@@ -99,16 +105,17 @@ import { setCanvasSize, getImage } from "./helper";
         frameRate: 3
       },
 
-      speedDown: {
-        frames: '54..56',  // frames 0 through 9
-        frameRate: 3
-      }
+      // speedDown: {
+      //   frames: '54..56',  // frames 0 through 9
+      //   frameRate: 3
+      // }
     }
   });
-  console.log(spriteSheet.type);
-   function degreesToRadians(degrees) {
+
+  function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
   }
+
   const marty = Sprite({
     x: 100,
     y: 500,
@@ -118,15 +125,6 @@ import { setCanvasSize, getImage } from "./helper";
 
     // required for an animation sprite
     animations: spriteSheet.animations,
-    // render() {
-    //   this.context.save();
-    //   // transform the origin and rotate around it
-    //   // using the ships rotation
-    //   this.context.translate(this.x, this.y);
-    //   this.context.rotate(degreesToRadians(this.rotation));
-    //   this.context.restore();
-    // },
-
     update() {
       console.log("cursor controll");
       // rotate the ship left or right
@@ -137,29 +135,135 @@ import { setCanvasSize, getImage } from "./helper";
         // this.rotation += -1
         this.x += -1;
         this.y += 1.5;
-      }
-
-      else if (kontra.keyPressed('up')) {
+        marty.playAnimation('flyDown')
+      } else if (kontra.keyPressed('up')) {
         // this.rotation += 1
         this.x += 1;
         this.y += -1.5;
+        marty.playAnimation('flyUp')
+
+      } else if (kontra.keyPressed('space')) {
+        // this.rotation += 1
+        let movementUp = setInterval(() => {
+          // this.x += 1.5;
+          this.y += -3;
+          this.ddx = cos * 0.1;
+          this.ddy = sin * 0.1;
+        }, 100);
+
+        let movementDown = setInterval(() => {
+          this.x += 1.5;
+          this.y += 2;
+          this.ddx = cos * 0.1;
+          this.ddy = sin * 0.1;
+        }, 100);
+
+        setTimeout(() => clearInterval(movementUp), 1000);
+        setTimeout(()=> movementDown(), 1000);
+        setTimeout(() => clearInterval(movementDown), 2000);
+
+        // this.x += 1.5;
+        // this.y += -3.5;
+        // this.ddx = cos * 0.2;
+        // this.ddy = sin * 0.2;
+        marty.playAnimation('salto')
+
       }
-      // move the ship forward in the direction it's facing
+      // move marty forward in the direction it's facing
 
       if (kontra.keyPressed('right')) {
         this.ddx = cos * 0.05;
         this.ddy = sin * 0.05;
+        marty.playAnimation('fly')
+
       } else if (kontra.keyPressed('left')) {
         this.ddx = cos * -0.05;
         this.ddy = sin * -0.05;
-      }
-      else {
+      } else {
         this.ddx = this.ddy = 0;
       }
       this.advance();
     }
   });
   sprites.push(marty);
+
+  let buildingImg = new Image();
+  buildingImg.src = 'assets/skyscraper.png';
+  buildingImg.onload = () => {
+    console.log("########### TILE ENGINE STARTED ")
+
+    let tileEngine = TileEngine({
+
+      // tile size
+      tilewidth: 100,
+      tileheight: 200,
+
+      // map size in tiles
+      width: 30,
+      height: 30,
+
+      // tileset object
+      tilesets: [{
+        firstgid: 40,
+        image: buildingImg
+      }],
+
+      // layer object
+      layers: [{
+        name: 'skyscraper',
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 6, 7, 7, 8, 0, 0, 0,
+          0, 6, 27, 24, 24, 25, 0, 0, 0,
+          0, 23, 24, 24, 24, 26, 8, 0, 0,
+          0, 23, 24, 24, 24, 24, 26, 8, 0,
+          0, 23, 24, 24, 24, 24, 24, 25, 0,
+          0, 40, 41, 41, 10, 24, 24, 25, 0,
+          0, 0, 0, 0, 40, 41, 41, 42, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }]
+    });
+    console.log(buildingImg)
+    return tileEngine;
+  };
+
+
+  // const background = async function() {
+  //   console.log("TILE ENGINE")
+  //   const skyscraperImg = await getImage('assets/skyscraper.png');
+  //
+  //   console.log("background")
+  //   let tileEngine = TileEngine({
+  //       // tile size
+  //       tilewidth: 64,
+  //       tileheight: 64,
+  //
+  //       // map size in tiles
+  //       width: 9,
+  //       height: 9,
+  //
+  //       // tileset object
+  //       tilesets: [{
+  //         firstgid: 1,
+  //         image: img
+  //       }],
+  //
+  //       // layer object
+  //       layers: [{
+  //         name: 'skyscraper',
+  //         data: [ 0,  0,  0,  0,  0,  0,  0,  0,  0,
+  //           0,  0,  6,  7,  7,  8,  0,  0,  0,
+  //           0,  6,  27, 24, 24, 25, 0,  0,  0,
+  //           0,  23, 24, 24, 24, 26, 8,  0,  0,
+  //           0,  23, 24, 24, 24, 24, 26, 8,  0,
+  //           0,  23, 24, 24, 24, 24, 24, 25, 0,
+  //           0,  40, 41, 41, 10, 24, 24, 25, 0,
+  //           0,  0,  0,  0,  40, 41, 41, 42, 0,
+  //           0,  0,  0,  0,  0,  0,  0,  0,  0 ]
+  //       }]
+  //     });
+  //
+  //    return tileEngine;
+  // };
 
   // use kontra.gameLoop to play the animation
   console.log('Starting game loop...')
@@ -191,9 +295,12 @@ import { setCanvasSize, getImage } from "./helper";
       sprites = sprites.filter(sprite => sprite.isAlive());
       sprites.map(sprite => sprite.update());
     },
-    render: () => {
+    render: async () => {
+      // (await background()).render();
+      // tileEngine.render();
       sprites.map(sprite => sprite.render());
-      drawScore()
+      drawScore();
+
     }
   }).start();
 

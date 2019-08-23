@@ -113,22 +113,33 @@ import { setCanvasSize, getImage } from "./helper";
     }
   });
 
-  let spriteObstacle = Sprite({
-    x: 700,
-    y: 600,
-    width: 100,
-    height: 100,
-    anchor: { x: 0.5, y: 0.5 },
+  function createNuclearPlant(x, y) {
+    let spriteObstacle = Sprite({
+      type: 'obstacle',
+      x: x,
+      y: y,
+      width: 100,
+      height: 100,
+      anchor: { x: 0.5, y: 0.5 },
 
-    // required for an image sprite
-    image: obstacleImage
-  });
+      // required for an image sprite
+      image: obstacleImage
+    });
+    sprites.push(spriteObstacle)
+  }
+
+  for (let i = 0; i < 4; i++) {
+    let posX = Math.random()*(800 - 300) + 300;
+    let posY = Math.random()*(700 - 400) + 400;
+    createNuclearPlant(posX, posY);
+  }
 
   function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
   }
 
   const marty = Sprite({
+    type: 'marty',
     x: 100,
     y: 500,
     dx: 0,
@@ -212,7 +223,7 @@ import { setCanvasSize, getImage } from "./helper";
     image: buildingImg
   });
 
-  sprites.push(marty, spriteObstacle, spriteSkyscraper);
+  sprites.push(marty);
 
   buildingImg.onload = () => {
     console.log("########### TILE ENGINE STARTED ")
@@ -248,28 +259,27 @@ import { setCanvasSize, getImage } from "./helper";
       }]
     });
     console.log(buildingImg)
-     tileEngine.render();
+    tileEngine.render();
   };
 
 
   // const background = async function() {
   //   console.log("TILE ENGINE")
-  //   const skyscraperImg = await getImage('assets/skyscraper.png');
   //
   //   console.log("background")
   //   let tileEngine = TileEngine({
   //       // tile size
-  //       tilewidth: 64,
-  //       tileheight: 64,
+  //       tilewidth: 100,
+  //       tileheight: 200,
   //
   //       // map size in tiles
-  //       width: 9,
-  //       height: 9,
+  //       width: 30,
+  //       height: 30,
   //
   //       // tileset object
   //       tilesets: [{
-  //         firstgid: 1,
-  //         image: img
+  //         firstgid: 40,
+  //         image: spriteSkyscraper
   //       }],
   //
   //       // layer object
@@ -301,7 +311,7 @@ import { setCanvasSize, getImage } from "./helper";
         if (sprites[i].type === 'nuclearStick') {
           for (let j = 0; j < sprites.length; j++) {
             // don't check asteroid vs. asteroid collisions
-            if (sprites[j].type !== 'nuclearStick') {
+            if (sprites[j].type === 'marty') {
               let nuclearStick = sprites[i];
               let marty = sprites[j];
               // circle vs. circle collision detection
@@ -315,6 +325,23 @@ import { setCanvasSize, getImage } from "./helper";
               }
             }
           }
+        } else if (sprites[i].type === 'marty') {
+          for (let j = 0; j < sprites.length; j++) {
+            // don't check asteroid vs. asteroid collisions
+            if (sprites[j].type === 'obstacle') {
+              let marty = sprites[i];
+              let obstacle = sprites[j];
+              // circle vs. circle collision detection
+              let dx = marty.x - obstacle.x;
+              let dy = marty.y - obstacle.y;
+
+              if (Math.sqrt(dx * dx + dy * dy) < marty.width + obstacle.width - 60) {
+                marty.ttl = 0;
+                score = 0;
+                console.log(score)
+              }
+            }
+          }
         }
       }
       sprites = sprites.filter(sprite => sprite.isAlive());
@@ -323,6 +350,7 @@ import { setCanvasSize, getImage } from "./helper";
     render: async () => {
       // (await background()).render();
       // kontra.render();
+      // tileEngine.render();
       sprites.map(sprite => sprite.render());
       drawScore();
 

@@ -19,12 +19,19 @@ import { setCanvasSize, getImage } from "./helper";
   setCanvasSize();
 
   let score = 0;
+  let energy = 3;
   let sprites = [];
 
   function drawScore() {
     context.font = "16px Arial";
     context.fillStyle = "deeppink";
     context.fillText("Score: " + score, 8, 20);
+  }
+
+  function drawEnergy() {
+    context.font = "16px Arial";
+    context.fillStyle = "yellow";
+    context.fillText("Life-Energy: " + energy, 100, 20);
   }
 
   function createNuclearStick(x, y, color) {
@@ -98,13 +105,20 @@ import { setCanvasSize, getImage } from "./helper";
 
       salto: {
         frames: '43..52',  // frames 0 through 9
-        frameRate: 4
+        frameRate: 4,
+        loop: false
       },
 
       break: {
         frames: '58..59',  // frames 0 through 9
         frameRate: 3
       },
+
+      fall: {
+        frames: '96..97',  // frames 0 through 9
+        frameRate: 55,
+        loop: false
+      }
 
       // speedDown: {
       //   frames: '54..56',  // frames 0 through 9
@@ -129,8 +143,8 @@ import { setCanvasSize, getImage } from "./helper";
   }
 
   for (let i = 0; i < 4; i++) {
-    let posX = Math.random()*(800 - 300) + 300;
-    let posY = Math.random()*(700 - 400) + 400;
+    let posX = Math.random() * (800 - 300) + 300;
+    let posY = Math.random() * (700 - 400) + 400;
     createNuclearPlant(posX, posY);
   }
 
@@ -312,14 +326,14 @@ import { setCanvasSize, getImage } from "./helper";
           for (let j = 0; j < sprites.length; j++) {
             // don't check asteroid vs. asteroid collisions
             if (sprites[j].type === 'marty') {
-              let nuclearStick = sprites[i];
-              let marty = sprites[j];
+              let nuclearStickSprite = sprites[i];
+              let martySprite = sprites[j];
               // circle vs. circle collision detection
-              let dx = nuclearStick.x - marty.x;
-              let dy = nuclearStick.y - marty.y;
+              let dx = nuclearStickSprite.x - martySprite.x;
+              let dy = nuclearStickSprite.y - martySprite.y;
 
-              if (Math.sqrt(dx * dx + dy * dy) < nuclearStick.width + marty.width - 60) {
-                nuclearStick.ttl = 0;
+              if (Math.sqrt(dx * dx + dy * dy) < nuclearStickSprite.width + martySprite.width - 60) {
+                nuclearStickSprite.ttl = 0;
                 score++;
                 console.log(score)
               }
@@ -329,15 +343,16 @@ import { setCanvasSize, getImage } from "./helper";
           for (let j = 0; j < sprites.length; j++) {
             // don't check asteroid vs. asteroid collisions
             if (sprites[j].type === 'obstacle') {
-              let marty = sprites[i];
+              let martySprite = sprites[i];
               let obstacle = sprites[j];
               // circle vs. circle collision detection
-              let dx = marty.x - obstacle.x;
-              let dy = marty.y - obstacle.y;
+              let dx = martySprite.x - obstacle.x;
+              let dy = martySprite.y - obstacle.y;
 
-              if (Math.sqrt(dx * dx + dy * dy) < marty.width + obstacle.width - 60) {
-                marty.ttl = 0;
-                score = 0;
+              if (Math.sqrt(dx * dx + dy * dy) < martySprite.width + obstacle.width - 99) {
+                // marty.ttl = 0;
+                marty.playAnimation('fall');
+                energy -=1;
                 console.log(score)
               }
             }
@@ -353,6 +368,7 @@ import { setCanvasSize, getImage } from "./helper";
       // tileEngine.render();
       sprites.map(sprite => sprite.render());
       drawScore();
+      drawEnergy();
 
     }
   }).start();

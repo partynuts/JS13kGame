@@ -62,6 +62,7 @@ import { setCanvasSize, getImage } from "./helper";
   console.log('images', imageAssets)
 
   const martyImage = await getImage('assets/marty1.png');
+  const obstacleImage = await getImage('assets/nuclearPlant.png');
   console.log('Image loaded.')
   const spriteSheet = SpriteSheet({
     image: martyImage,
@@ -112,6 +113,17 @@ import { setCanvasSize, getImage } from "./helper";
     }
   });
 
+  let spriteObstacle = Sprite({
+    x: 700,
+    y: 600,
+    width: 100,
+    height: 100,
+    anchor: { x: 0.5, y: 0.5 },
+
+    // required for an image sprite
+    image: obstacleImage
+  });
+
   function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
   }
@@ -153,15 +165,15 @@ import { setCanvasSize, getImage } from "./helper";
 
         let movementDown = setInterval(() => {
           this.x += 1.5;
-          this.y += 2;
+          this.y += 1.5;
           this.ddx = cos * 0.1;
           this.ddy = sin * 0.1;
         }, 100);
 
-        setTimeout(() => clearInterval(movementUp), 1000);
-        setTimeout(()=> movementDown(), 1000);
-        setTimeout(() => clearInterval(movementDown), 2000);
 
+        setTimeout(() => clearInterval(movementUp), 1000);
+        setTimeout(() => movementDown(), 1000);
+        setTimeout(() => clearInterval(movementDown), 2000);
         // this.x += 1.5;
         // this.y += -3.5;
         // this.ddx = cos * 0.2;
@@ -185,10 +197,23 @@ import { setCanvasSize, getImage } from "./helper";
       this.advance();
     }
   });
-  sprites.push(marty);
 
   let buildingImg = new Image();
   buildingImg.src = 'assets/skyscraper.png';
+
+  let spriteSkyscraper = Sprite({
+    x: 200,
+    y: 400,
+    width: 900,
+    height: 900,
+    anchor: { x: 0.5, y: 0.5 },
+
+    // required for an image sprite
+    image: buildingImg
+  });
+
+  sprites.push(marty, spriteObstacle, spriteSkyscraper);
+
   buildingImg.onload = () => {
     console.log("########### TILE ENGINE STARTED ")
 
@@ -223,7 +248,7 @@ import { setCanvasSize, getImage } from "./helper";
       }]
     });
     console.log(buildingImg)
-    return tileEngine;
+     tileEngine.render();
   };
 
 
@@ -297,7 +322,7 @@ import { setCanvasSize, getImage } from "./helper";
     },
     render: async () => {
       // (await background()).render();
-      // tileEngine.render();
+      // kontra.render();
       sprites.map(sprite => sprite.render());
       drawScore();
 

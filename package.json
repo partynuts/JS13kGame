@@ -9,6 +9,7 @@
   "devDependencies": {
     "archiver": "^2.1.1",
     "css-loader": "^1.0.0",
+    "file-loader": "^4.2.0",
     "html-webpack-inline-source-plugin": "0.0.10",
     "html-webpack-plugin": "^3.2.0",
     "mini-css-extract-plugin": "^0.4.1",
@@ -19,6 +20,7 @@
     "webpack-dev-server": "^3.1.5"
   },
   "dependencies": {
+    "image-webpack-loader": "^5.0.0",
     "kontra": "^6.2.3"
   }
 }

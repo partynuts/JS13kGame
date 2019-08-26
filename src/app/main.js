@@ -11,6 +11,8 @@ import kontra, {
   TileEngine
 } from "kontra";
 import { setCanvasSize, getImage } from "./helper";
+import martyImagePath from '../assets/marty1.png';
+import nuclerPlantPath from "../assets/nuclearPlant.png";
 
 (async () => {
   let { canvas, context } = init();
@@ -45,14 +47,16 @@ import { setCanvasSize, getImage } from "./helper";
       dy: Math.random() * 1.5,
       // radius: radius,
       render() {
+        this.context.save();
         this.context.strokeStyle = color;
         this.context.fillStyle = 'green';
-        this.context.shadowBlur = 20;
+        this.context.shadowBlur = 100;
         this.context.shadowColor = "yellow";
         this.context.fillRect(this.x, this.y, 5, 20);
         this.context.beginPath();  // start drawing a shape
         this.context.rect(this.x, this.y, 5, 20);
         this.context.stroke();     // outline the circle
+        this.context.restore();
       }
     });
     sprites.push(nuclearStick);
@@ -68,8 +72,8 @@ import { setCanvasSize, getImage } from "./helper";
   // path: imageAssets['assets/imgs/character.png']
   console.log('images', imageAssets)
 
-  const martyImage = await getImage('assets/marty1.png');
-  const obstacleImage = await getImage('assets/nuclearPlant.png');
+  const martyImage = await getImage(martyImagePath);
+  const obstacleImage = await getImage(nuclerPlantPath);
   console.log('Image loaded.')
   const spriteSheet = SpriteSheet({
     image: martyImage,
@@ -116,8 +120,13 @@ import { setCanvasSize, getImage } from "./helper";
 
       fall: {
         frames: '96..97',  // frames 0 through 9
-        frameRate: 55,
+        frameRate: 4,
         loop: false
+      },
+
+      die: {
+        frames: '99..100',  // frames 0 through 9
+        frameRate: 4,
       }
 
       // speedDown: {
@@ -143,7 +152,7 @@ import { setCanvasSize, getImage } from "./helper";
   }
 
   for (let i = 0; i < 4; i++) {
-    let posX = Math.random() * (800 - 300) + 300;
+    let posX = Math.random() * (1200 - 200) + 200;
     let posY = Math.random() * (700 - 400) + 400;
     createNuclearPlant(posX, posY);
   }
@@ -183,13 +192,13 @@ import { setCanvasSize, getImage } from "./helper";
         // this.rotation += 1
         let movementUp = setInterval(() => {
           // this.x += 1.5;
-          this.y += -3;
+          this.y += -4;
           this.ddx = cos * 0.1;
           this.ddy = sin * 0.1;
         }, 100);
 
         let movementDown = setInterval(() => {
-          this.x += 1.5;
+          this.x += 1;
           this.y += 1.5;
           this.ddx = cos * 0.1;
           this.ddy = sin * 0.1;
@@ -350,10 +359,22 @@ import { setCanvasSize, getImage } from "./helper";
               let dy = martySprite.y - obstacle.y;
 
               if (Math.sqrt(dx * dx + dy * dy) < martySprite.width + obstacle.width - 99) {
-                // marty.ttl = 0;
+                if (energy === 1) {
+                  // marty.ttl = 0;
+                  (setInterval(() => {
+                    marty.dx = 0;
+                    marty.y += -1;
+                    // marty.ddx = 2;
+                    // marty.ddy = 2;
+                  marty.playAnimation('die');
+                  }, 100))();
+                  // setTimeout(()=> alert("Game Over!"), 2000)
+                } else {
                 marty.playAnimation('fall');
                 energy -=1;
-                console.log(score)
+                marty.x = obstacle.x - 200;
+                marty.dx = 0;
+                }
               }
             }
           }

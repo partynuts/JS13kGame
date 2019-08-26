@@ -40,4 +40,10 @@ archive.append(
   }
 )
 
+fs.readdirSync('./dist').filter(filename => filename.endsWith("png")).forEach(filename => archive.append(
+  fs.createReadStream(`./dist/${filename}`), {
+    name: filename
+  })
+)
+
 archive.finalize()

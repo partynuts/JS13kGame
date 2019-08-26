@@ -9,7 +9,7 @@ const isProduction = process.env.npm_lifecycle_event === 'build'
 module.exports = {
   entry: './src',
   output: {
-    path: resolve(__dirname, 'build')
+    path: resolve(__dirname, 'dist')
   },
   devtool: !isProduction && 'source-map',
   module: {
@@ -40,7 +40,7 @@ module.exports = {
     })
   ],
   devServer: {
-    contentBase: resolve(__dirname, 'build'),
+    contentBase: resolve(__dirname, 'dist'),
     stats: 'minimal',
     overlay: true
   }

@@ -346,7 +346,7 @@ import deloreanClosedPath from '../assets/deloreanClosed.png';
   GameLoop({
     update: () => {
       // console.log('update');
-      if(score === 20) {
+      if(score === 2) {
         sprites.push(spriteDelorean);
       }
       // collision detection
@@ -407,10 +407,11 @@ import deloreanClosedPath from '../assets/deloreanClosed.png';
               let dx = martySprite.x - delorean.x;
               let dy = martySprite.y - delorean.y;
 
-              if (score >= 20 && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
+              if (score >= 2 && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
                 console.log("#######################")
                 marty.ttl = 0;
-                spriteDelorean.image = deloreanClosed
+                spriteDelorean.image = deloreanClosed;
+                setTimeout(() => {spriteDelorean.dx += 0.04}, 500)
               }
             }
           }

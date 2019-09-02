@@ -21,6 +21,6 @@
   },
   "dependencies": {
     "image-webpack-loader": "^5.0.0",
-    "kontra": "^6.2.3"
+    "kontra": "git+https://github.com/nkholski/kontra.git"
   }
 }

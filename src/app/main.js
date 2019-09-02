@@ -1,4 +1,4 @@
-import kontra, {
+import {
   init,
   load,
   initKeys,
@@ -9,14 +9,17 @@ import kontra, {
   keyPressed,
   GameLoop,
   TileEngine
-} from "kontra";
+} from "kontra/src/kontra";
 import { setCanvasSize, getImage } from "./helper";
 import martyImagePath from '../assets/marty1.png';
 import nuclerPlantPath from "../assets/nuclearPlant.png";
+import buildingPath from "../assets/buildings.png";
+import deloreanOpenPath from '../assets/deloreanOpen.png';
+import deloreanClosedPath from '../assets/deloreanClosed.png';
 
 (async () => {
   let { canvas, context } = init();
-  kontra.initKeys();
+  initKeys();
 
   setCanvasSize();
 
@@ -37,7 +40,7 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
   }
 
   function createNuclearStick(x, y, color) {
-    let nuclearStick = kontra.Sprite({
+    let nuclearStick = Sprite({
       type: 'nuclearStick',
       x: x,
       y: y,
@@ -63,28 +66,37 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
   }
 
   for (var i = 0; i < 40; i++) {
-    createNuclearStick(100, 100, "springgreen");
+    createNuclearStick(400, -10, "springgreen");
   }
 
 // setImagePath('assets');
   // Image asset can be accessed by both
   // name: imageAssets['assets/imgs/character']
   // path: imageAssets['assets/imgs/character.png']
-  console.log('images', imageAssets)
+  // console.log('images', imageAssets)
 
   const martyImage = await getImage(martyImagePath);
   const obstacleImage = await getImage(nuclerPlantPath);
-  console.log('Image loaded.')
+  const deloreanOpen = await getImage(deloreanOpenPath);
+  const deloreanClosed = await getImage(deloreanClosedPath);
+  // console.log('Image loaded.')
   const spriteSheet = SpriteSheet({
     image: martyImage,
     type: 'marty',
     frameWidth: 50,
     frameHeight: 52.5,
+    flipX: true,
     animations: {
       // create a named animation: walk
       fly: {
         frames: '0..2',  // frames 0 through 9
         frameRate: 3
+      },
+
+      fly2: {
+        frames: '0..2',  // frames 0 through 9
+        frameRate: 3,
+        flipX: true
       },
 
       accelerate: {
@@ -137,23 +149,62 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
   });
 
   function createNuclearPlant(x, y) {
+
     let spriteObstacle = Sprite({
       type: 'obstacle',
       x: x,
       y: y,
-      width: 100,
-      height: 100,
+      width: 130,
+      height: 130,
       anchor: { x: 0.5, y: 0.5 },
 
-      // required for an image sprite
       image: obstacleImage
     });
     sprites.push(spriteObstacle)
+
   }
 
-  for (let i = 0; i < 4; i++) {
-    let posX = Math.random() * (1200 - 200) + 200;
-    let posY = Math.random() * (700 - 400) + 400;
+  let spriteDelorean = Sprite({
+    type: 'delorean',
+    x: 1300,
+    y: 400,
+    anchor: {x:0.5, y: 0.5},
+    image: deloreanOpen
+  });
+
+  function collides(a, b) {
+    return (
+      a.x < b.x + b.width &&
+      a.x + a.width > b.x &&
+      a.y < b.y + b.height &&
+      a.y + a.height > b.y
+    );
+  }
+
+// placing nuclear plants
+  for (let i = 0; i < 5; i++) {
+    // console.log("plant loop")
+    let posX = Math.random() * (window.screen.width * 0.55) + (window.screen.width * 0.3);
+    let posY = Math.random() * (window.screen.height * 0.3) + (window.screen.height * 0.5);
+    let collision = true
+
+    // console.log("plant loop 2")
+    while (collision) {
+      collision = false;
+      sprites.filter(s => s.type === "obstacle").forEach(sprite => {
+        if (collides(sprite, { x: posX, y: posY, height: 300, width: 300 })) {
+          collision = true;
+          posX -= 100;
+          posY -= 100;
+          // if (posX <= window.screen.width || posY <= window.screen.height) {
+          //   posX += 50;
+          //   posY += 50;
+          // }
+        }
+        // console.log(posX, posY)
+      });
+    }
+
     createNuclearPlant(posX, posY);
   }
 
@@ -165,30 +216,33 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
     type: 'marty',
     x: 100,
     y: 500,
+    width: 70,
+    height: 70,
     dx: 0,
     dy: 0,
     anchor: { x: 0.5, y: 0.5 },
 
     // required for an animation sprite
     animations: spriteSheet.animations,
+
     update() {
-      console.log("cursor controll");
+      // console.log("cursor controll");
       // rotate the ship left or right
       const cos = Math.cos(degreesToRadians(this.rotation));
       const sin = Math.sin(degreesToRadians(this.rotation));
-      console.log("cos", cos)
-      if (kontra.keyPressed('down')) {
+      // console.log("cos", cos)
+      if (keyPressed('down')) {
         // this.rotation += -1
         this.x += -1;
         this.y += 1.5;
         marty.playAnimation('flyDown')
-      } else if (kontra.keyPressed('up')) {
+      } else if (keyPressed('up')) {
         // this.rotation += 1
         this.x += 1;
         this.y += -1.5;
         marty.playAnimation('flyUp')
 
-      } else if (kontra.keyPressed('space')) {
+      } else if (keyPressed('space')) {
         // this.rotation += 1
         let movementUp = setInterval(() => {
           // this.x += 1.5;
@@ -213,121 +267,88 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
         // this.ddx = cos * 0.2;
         // this.ddy = sin * 0.2;
         marty.playAnimation('salto')
-
+        zzfx(.8, 0, 220, 1, .1, 1.2, 0, 0, 0); // ZzFX 0
       }
       // move marty forward in the direction it's facing
 
-      if (kontra.keyPressed('right')) {
+      if (keyPressed('right')) {
         this.ddx = cos * 0.05;
         this.ddy = sin * 0.05;
+        zzfx(1, .1, 12, .4, .02, 1.1, 0, 0, .22); // ZzFX 4869
         marty.playAnimation('fly')
 
-      } else if (kontra.keyPressed('left')) {
+      } else if (keyPressed('left')) {
         this.ddx = cos * -0.05;
         this.ddy = sin * -0.05;
+        marty.playAnimation('fly2')
       } else {
         this.ddx = this.ddy = 0;
       }
       this.advance();
     }
   });
-
-  let buildingImg = new Image();
-  buildingImg.src = 'assets/skyscraper.png';
-
-  let spriteSkyscraper = Sprite({
-    x: 200,
-    y: 400,
-    width: 900,
-    height: 900,
-    anchor: { x: 0.5, y: 0.5 },
-
-    // required for an image sprite
-    image: buildingImg
-  });
+// let tileEngine;
+//   let buildingImg = new Image();
+//   buildingImg.src = buildingPath;
+//
+//   let spriteSkyscraper = Sprite({
+//     x: 200,
+//     y: 400,
+//     width: 900,
+//     height: 900,
+//     anchor: { x: 0.5, y: 0.5 },
+//
+//     // required for an image sprite
+//     image: buildingImg
+//   });
 
   sprites.push(marty);
 
-  buildingImg.onload = () => {
-    console.log("########### TILE ENGINE STARTED ")
-
-    let tileEngine = TileEngine({
-
-      // tile size
-      tilewidth: 100,
-      tileheight: 200,
-
-      // map size in tiles
-      width: 30,
-      height: 30,
-
-      // tileset object
-      tilesets: [{
-        firstgid: 40,
-        image: buildingImg
-      }],
-
-      // layer object
-      layers: [{
-        name: 'skyscraper',
-        data: [0, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, 0, 6, 7, 7, 8, 0, 0, 0,
-          0, 6, 27, 24, 24, 25, 0, 0, 0,
-          0, 23, 24, 24, 24, 26, 8, 0, 0,
-          0, 23, 24, 24, 24, 24, 26, 8, 0,
-          0, 23, 24, 24, 24, 24, 24, 25, 0,
-          0, 40, 41, 41, 10, 24, 24, 25, 0,
-          0, 0, 0, 0, 40, 41, 41, 42, 0,
-          0, 0, 0, 0, 0, 0, 0, 0, 0]
-      }]
-    });
-    console.log(buildingImg)
-    tileEngine.render();
-  };
-
-
-  // const background = async function() {
-  //   console.log("TILE ENGINE")
+  // buildingImg.onload = () => {
+  //   console.log("########### TILE ENGINE STARTED ")
   //
-  //   console.log("background")
-  //   let tileEngine = TileEngine({
-  //       // tile size
-  //       tilewidth: 100,
-  //       tileheight: 200,
+  //   tileEngine = TileEngine({
   //
-  //       // map size in tiles
-  //       width: 30,
-  //       height: 30,
+  //     // tile size
+  //     tilewidth: 100,
+  //     tileheight: 100,
   //
-  //       // tileset object
-  //       tilesets: [{
-  //         firstgid: 40,
-  //         image: spriteSkyscraper
-  //       }],
+  //     // map size in tiles
+  //     width: 20,
+  //     height: 50,
   //
-  //       // layer object
-  //       layers: [{
-  //         name: 'skyscraper',
-  //         data: [ 0,  0,  0,  0,  0,  0,  0,  0,  0,
-  //           0,  0,  6,  7,  7,  8,  0,  0,  0,
-  //           0,  6,  27, 24, 24, 25, 0,  0,  0,
-  //           0,  23, 24, 24, 24, 26, 8,  0,  0,
-  //           0,  23, 24, 24, 24, 24, 26, 8,  0,
-  //           0,  23, 24, 24, 24, 24, 24, 25, 0,
-  //           0,  40, 41, 41, 10, 24, 24, 25, 0,
-  //           0,  0,  0,  0,  40, 41, 41, 42, 0,
-  //           0,  0,  0,  0,  0,  0,  0,  0,  0 ]
-  //       }]
-  //     });
+  //     // tileset object
+  //     tilesets: [{
+  //       firstgid: 1,
+  //       margin: 30,
+  //       image: buildingImg
+  //     }],
   //
-  //    return tileEngine;
+  //     // layer object
+  //     layers: [{
+  //       name: 'skyscraper',
+  //       data: [0, 0, 0, 0, 0, 0, 0, 0, 0,
+  //         0, 0, 6, 7, 7, 8, 0, 0, 0,
+  //         0, 6, 27, 24, 24, 25, 0, 0, 0,
+  //         0, 23, 24, 24, 24, 26, 8, 0, 0,
+  //         0, 23, 24, 24, 24, 24, 26, 8, 0,
+  //         0, 23, 24, 24, 24, 24, 24, 25, 0,
+  //         0, 40, 41, 41, 10, 24, 24, 25, 0,
+  //         0, 0, 0, 0, 40, 41, 41, 42, 0,
+  //         0, 0, 0, 0, 0, 0, 0, 0, 0]
+  //     }]
+  //   });
+  //   console.log(buildingImg)
   // };
 
   // use kontra.gameLoop to play the animation
-  console.log('Starting game loop...')
+  // console.log('Starting game loop...')
   GameLoop({
     update: () => {
-      console.log('update');
+      // console.log('update');
+      if(score === 20) {
+        sprites.push(spriteDelorean);
+      }
       // collision detection
       for (let i = 0; i < sprites.length; i++) {
         // only check for collision against asteroids
@@ -343,8 +364,10 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
 
               if (Math.sqrt(dx * dx + dy * dy) < nuclearStickSprite.width + martySprite.width - 60) {
                 nuclearStickSprite.ttl = 0;
+
                 score++;
-                console.log(score)
+                zzfx(1, .1, 397, .5, .17, 0, .1, 0, .17); // ZzFX 14565
+                // console.log(score)
               }
             }
           }
@@ -366,15 +389,28 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
                     marty.y += -1;
                     // marty.ddx = 2;
                     // marty.ddy = 2;
-                  marty.playAnimation('die');
+                    marty.playAnimation('die');
                   }, 100))();
                   // setTimeout(()=> alert("Game Over!"), 2000)
                 } else {
-                marty.playAnimation('fall');
-                energy -=1;
-                marty.x = obstacle.x - 200;
-                marty.dx = 0;
+                  marty.playAnimation('fall');
+                  energy -= 1;
+                  marty.x = obstacle.x - 200;
+                  marty.dx = 0;
+                  zzfx(1, .1, 52, .5, .26, .3, 4.4, 17.8, .03); // ZzFX 33201
                 }
+              }
+            } else if (sprites[j].type === 'delorean') {
+              let martySprite = sprites[i];
+              let delorean = sprites[j];
+              // circle vs. circle collision detection
+              let dx = martySprite.x - delorean.x;
+              let dy = martySprite.y - delorean.y;
+
+              if (score >= 20 && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
+                console.log("#######################")
+                marty.ttl = 0;
+                spriteDelorean.image = deloreanClosed
               }
             }
           }
@@ -386,7 +422,7 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
     render: async () => {
       // (await background()).render();
       // kontra.render();
-      // tileEngine.render();
+      // tileEngine && tileEngine.render();
       sprites.map(sprite => sprite.render());
       drawScore();
       drawEnergy();

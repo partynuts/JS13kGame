@@ -4,8 +4,13 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: black;
 }
 
-body {
-  background-color: midnightblue;
+#container {
+  position:relative;
+  border:1px solid blue;
+}
+.subcanvs {
+  position:absolute;
 }

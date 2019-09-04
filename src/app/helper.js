@@ -1,8 +1,10 @@
 export function setCanvasSize() {
-  const canvas = document.querySelector("#canvas");
+  const canvases = document.querySelectorAll("canvas");
 
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
+  canvases.forEach(canvas => {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+  })
 }
 
 export function getImage(url) {
@@ -10,7 +12,7 @@ export function getImage(url) {
     let image = new Image();
 
     image.src = url;
-    image.onload = function() {
+    image.onload = function () {
       resolve(image);
     };
   });

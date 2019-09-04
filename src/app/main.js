@@ -16,16 +16,17 @@ import nuclerPlantPath from "../assets/nuclearPlant.png";
 import buildingPath from "../assets/buildings.png";
 import deloreanOpenPath from '../assets/deloreanOpen.png';
 import deloreanClosedPath from '../assets/deloreanClosed.png';
+import {getBackground } from "./background";
 
 (async () => {
   let { canvas, context } = init();
   initKeys();
-
   setCanvasSize();
 
   let score = 0;
   let energy = 3;
   let sprites = [];
+  sprites.push(getBackground());
 
   function drawScore() {
     context.font = "16px Arial";
@@ -46,15 +47,15 @@ import deloreanClosedPath from '../assets/deloreanClosed.png';
       y: y,
       width: 50,
       height: 50,
-      dx: Math.random() * 1.5,
-      dy: Math.random() * 1.5,
+      dx: Math.random() * 1.2,
+      dy: Math.random() * 1.2,
       // radius: radius,
       render() {
         this.context.save();
         this.context.strokeStyle = color;
-        this.context.fillStyle = 'green';
-        this.context.shadowBlur = 100;
-        this.context.shadowColor = "yellow";
+        this.context.fillStyle = 'springgreen';
+        this.context.shadowBlur = 10;
+        this.context.shadowColor = "springgreen";
         this.context.fillRect(this.x, this.y, 5, 20);
         this.context.beginPath();  // start drawing a shape
         this.context.rect(this.x, this.y, 5, 20);
@@ -65,8 +66,9 @@ import deloreanClosedPath from '../assets/deloreanClosed.png';
     sprites.push(nuclearStick);
   }
 
-  for (var i = 0; i < 40; i++) {
-    createNuclearStick(400, -10, "springgreen");
+  for (let i = 0; i < 20; i++) {
+    createNuclearStick(200, -10, "springgreen");
+    createNuclearStick(550, -10, "springgreen");
   }
 
 // setImagePath('assets');
@@ -166,7 +168,7 @@ import deloreanClosedPath from '../assets/deloreanClosed.png';
 
   let spriteDelorean = Sprite({
     type: 'delorean',
-    x: 1300,
+    x: window.screen.width * 0.85,
     y: 400,
     anchor: {x:0.5, y: 0.5},
     image: deloreanOpen
@@ -407,11 +409,11 @@ import deloreanClosedPath from '../assets/deloreanClosed.png';
               let dx = martySprite.x - delorean.x;
               let dy = martySprite.y - delorean.y;
 
-              if (score >= 2 && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
+              if (score >= 2 && spriteDelorean.image === deloreanOpen && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
                 console.log("#######################")
                 marty.ttl = 0;
                 spriteDelorean.image = deloreanClosed;
-                setTimeout(() => {spriteDelorean.dx += 0.04}, 500)
+                setTimeout(() => {spriteDelorean.ddx = 0.04}, 500)
               }
             }
           }

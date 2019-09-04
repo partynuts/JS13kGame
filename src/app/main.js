@@ -8,15 +8,18 @@ import {
   setImagePath,
   keyPressed,
   GameLoop,
-  TileEngine
+  TileEngine,
+  getCanvas
 } from "kontra/src/kontra";
 import { setCanvasSize, getImage } from "./helper";
 import martyImagePath from '../assets/marty1.png';
 import nuclerPlantPath from "../assets/nuclearPlant.png";
+import sunPath from "../assets/sun.png";
+import moonPath from "../assets/moon.png";
 import buildingPath from "../assets/buildings.png";
 import deloreanOpenPath from '../assets/deloreanOpen.png';
 import deloreanClosedPath from '../assets/deloreanClosed.png';
-import {getBackground } from "./background";
+import { getBackground } from "./background";
 
 (async () => {
   let { canvas, context } = init();
@@ -79,6 +82,8 @@ import {getBackground } from "./background";
 
   const martyImage = await getImage(martyImagePath);
   const obstacleImage = await getImage(nuclerPlantPath);
+  const sunObstacleImage = await getImage(sunPath);
+  const moonObstacleImage = await getImage(moonPath);
   const deloreanOpen = await getImage(deloreanOpenPath);
   const deloreanClosed = await getImage(deloreanClosedPath);
   // console.log('Image loaded.')
@@ -150,29 +155,28 @@ import {getBackground } from "./background";
     }
   });
 
-  function createNuclearPlant(x, y) {
-
-    let spriteObstacle = Sprite({
-      type: 'obstacle',
+  function createObstacle(x, y, obstacleType) {
+    const spriteObstacle = Sprite({
+      type: obstacleType,
       x: x,
       y: y,
       width: 130,
       height: 130,
-      anchor: { x: 0.5, y: 0.5 },
-
-      image: obstacleImage
+      radius: 1,
+      dx: Math.random() * -2 -1,
+      // anchor: { x: 0.5, y: 0.5 },
+      image: obstacleType === "sun" ? sunObstacleImage : moonObstacleImage,
+      update() {
+        this.__proto__.update.call(this);
+        if (this.x + this.width <= 0) {
+          this.x = getCanvas().width + 65;
+          this.y = Math.random() * getCanvas().height
+        }
+      }
     });
-    sprites.push(spriteObstacle)
 
+    sprites.push(spriteObstacle);
   }
-
-  let spriteDelorean = Sprite({
-    type: 'delorean',
-    x: window.screen.width * 0.85,
-    y: 400,
-    anchor: {x:0.5, y: 0.5},
-    image: deloreanOpen
-  });
 
   function collides(a, b) {
     return (
@@ -188,27 +192,32 @@ import {getBackground } from "./background";
     // console.log("plant loop")
     let posX = Math.random() * (window.screen.width * 0.55) + (window.screen.width * 0.3);
     let posY = Math.random() * (window.screen.height * 0.3) + (window.screen.height * 0.5);
-    let collision = true
+    // let posX = Math.random() * 5000 + 300;
+    let collision = true;
 
     // console.log("plant loop 2")
     while (collision) {
       collision = false;
-      sprites.filter(s => s.type === "obstacle").forEach(sprite => {
+      sprites.filter(s => s.type === "sun" || s.type === "moon").forEach(sprite => {
         if (collides(sprite, { x: posX, y: posY, height: 300, width: 300 })) {
           collision = true;
           posX -= 100;
           posY -= 100;
-          // if (posX <= window.screen.width || posY <= window.screen.height) {
-          //   posX += 50;
-          //   posY += 50;
-          // }
+
         }
-        // console.log(posX, posY)
       });
     }
-
-    createNuclearPlant(posX, posY);
+    const obstacleType = ["moon", "sun"][Math.round(Math.random())];
+    createObstacle(posX, posY, obstacleType);
   }
+
+  let spriteDelorean = Sprite({
+    type: 'delorean',
+    x: window.screen.width * 0.85,
+    y: 400,
+    // anchor: { x: 0.5, y: 0.5 },
+    image: deloreanOpen
+  });
 
   function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
@@ -222,17 +231,24 @@ import {getBackground } from "./background";
     height: 70,
     dx: 0,
     dy: 0,
-    anchor: { x: 0.5, y: 0.5 },
+    // anchor: { x: 0.5, y: 0.5 },
 
     // required for an animation sprite
     animations: spriteSheet.animations,
 
     update() {
-      // console.log("cursor controll");
+      this.advance();
+
+      if (marty.dying) {
+        return
+      }
+
       // rotate the ship left or right
       const cos = Math.cos(degreesToRadians(this.rotation));
       const sin = Math.sin(degreesToRadians(this.rotation));
       // console.log("cos", cos)
+
+
       if (keyPressed('down')) {
         // this.rotation += -1
         this.x += -1;
@@ -286,7 +302,6 @@ import {getBackground } from "./background";
       } else {
         this.ddx = this.ddy = 0;
       }
-      this.advance();
     }
   });
 // let tileEngine;
@@ -348,7 +363,7 @@ import {getBackground } from "./background";
   GameLoop({
     update: () => {
       // console.log('update');
-      if(score === 2) {
+      if (score === 2) {
         sprites.push(spriteDelorean);
       }
       // collision detection
@@ -376,23 +391,28 @@ import {getBackground } from "./background";
         } else if (sprites[i].type === 'marty') {
           for (let j = 0; j < sprites.length; j++) {
             // don't check asteroid vs. asteroid collisions
-            if (sprites[j].type === 'obstacle') {
+            if (sprites[j].type === 'sun' || sprites[j].type === 'moon') {
               let martySprite = sprites[i];
               let obstacle = sprites[j];
               // circle vs. circle collision detection
               let dx = martySprite.x - obstacle.x;
               let dy = martySprite.y - obstacle.y;
 
-              if (Math.sqrt(dx * dx + dy * dy) < martySprite.width + obstacle.width - 99) {
+              // if (Math.sqrt(dx * dx + dy * dy) < martySprite.width + obstacle.width - 160) {
+              if (martySprite.collidesWith(obstacle)) {
+              console.log("COLLISION")
+                // if (martySprite.collidesWith(obstacle)) {
                 if (energy === 1) {
                   // marty.ttl = 0;
-                  (setInterval(() => {
+                  setInterval(() => {
                     marty.dx = 0;
                     marty.y += -1;
                     // marty.ddx = 2;
                     // marty.ddy = 2;
                     marty.playAnimation('die');
-                  }, 100))();
+                    marty.dying = true;
+                  }, 100);
+
                   // setTimeout(()=> alert("Game Over!"), 2000)
                 } else {
                   marty.playAnimation('fall');
@@ -413,7 +433,9 @@ import {getBackground } from "./background";
                 console.log("#######################")
                 marty.ttl = 0;
                 spriteDelorean.image = deloreanClosed;
-                setTimeout(() => {spriteDelorean.ddx = 0.04}, 500)
+                setTimeout(() => {
+                  spriteDelorean.ddx = 0.04
+                }, 500)
               }
             }
           }

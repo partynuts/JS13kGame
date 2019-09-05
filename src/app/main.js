@@ -73,12 +73,6 @@ import { getBackground } from "./background";
     createNuclearStick(550, -10, "springgreen");
   }
 
-// setImagePath('assets');
-  // Image asset can be accessed by both
-  // name: imageAssets['assets/imgs/character']
-  // path: imageAssets['assets/imgs/character.png']
-  // console.log('images', imageAssets)
-
   const martyImage = await getImage(martyImagePath);
   const sunObstacleImage = await getImage(sunPath);
   const moonObstacleImage = await getImage(moonPath);
@@ -92,57 +86,57 @@ import { getBackground } from "./background";
     frameHeight: 52.5,
     flipX: true,
     animations: {
-      // create a named animation: walk
+      // create a named animation:
       fly: {
-        frames: '0..2',  // frames 0 through 9
+        frames: '0..2',
         frameRate: 3
       },
 
       fly2: {
-        frames: '0..2',  // frames 0 through 9
+        frames: '0..2',
         frameRate: 3,
         flipX: true
       },
 
       accelerate: {
-        frames: '4..6',  // frames 0 through 9
+        frames: '4..6',
         frameRate: 3
       },
 
       speedDown1: {
-        frames: '21..23',  // frames 0 through 9
+        frames: '21..23',
         frameRate: 3
       },
 
       flyDown: {
-        frames: '36..38',  // frames 0 through 9
+        frames: '36..38',
         frameRate: 3
       },
 
       flyUp: {
-        frames: '15..17',  // frames 0 through 9
+        frames: '15..17',
         frameRate: 3
       },
 
       salto: {
-        frames: '43..52',  // frames 0 through 9
+        frames: '43..52',
         frameRate: 4,
         loop: false
       },
 
       break: {
-        frames: '58..59',  // frames 0 through 9
+        frames: '58..59',
         frameRate: 3
       },
 
       fall: {
-        frames: '96..97',  // frames 0 through 9
+        frames: '96..97',
         frameRate: 4,
         loop: false
       },
 
       die: {
-        frames: '99..100',  // frames 0 through 9
+        frames: '99..100',
         frameRate: 4,
       }
 
@@ -185,15 +179,13 @@ import { getBackground } from "./background";
     );
   }
 
-// placing nuclear plants
+// placing obstacles
   for (let i = 0; i < 5; i++) {
-    // console.log("plant loop")
     let posX = Math.random() * (window.screen.width * 0.55) + (window.screen.width * 0.3);
     let posY = Math.random() * (window.screen.height * 0.3) + (window.screen.height * 0.5);
     // let posX = Math.random() * 5000 + 300;
     let collision = true;
 
-    // console.log("plant loop 2")
     while (collision) {
       collision = false;
       sprites.filter(s => s.type === "sun" || s.type === "moon").forEach(sprite => {
@@ -201,7 +193,6 @@ import { getBackground } from "./background";
           collision = true;
           posX -= 100;
           posY -= 100;
-
         }
       });
     }
@@ -241,11 +232,9 @@ import { getBackground } from "./background";
         return
       }
 
-      // rotate the ship left or right
+      // rotate the element left or right. --> do I need this?
       const cos = Math.cos(degreesToRadians(this.rotation));
       const sin = Math.sin(degreesToRadians(this.rotation));
-      // console.log("cos", cos)
-
 
       if (keyPressed('down')) {
         // this.rotation += -1
@@ -278,11 +267,7 @@ import { getBackground } from "./background";
         setTimeout(() => clearInterval(movementUp), 1000);
         setTimeout(() => movementDown(), 1000);
         setTimeout(() => clearInterval(movementDown), 2000);
-        // this.x += 1.5;
-        // this.y += -3.5;
-        // this.ddx = cos * 0.2;
-        // this.ddy = sin * 0.2;
-        marty.playAnimation('salto')
+        marty.playAnimation('salto');
         zzfx(.8, 0, 220, 1, .1, 1.2, 0, 0, 0); // ZzFX 0
       }
       // move marty forward in the direction it's facing
@@ -366,14 +351,11 @@ import { getBackground } from "./background";
       }
       // collision detection
       for (let i = 0; i < sprites.length; i++) {
-        // only check for collision against asteroids
         if (sprites[i].type === 'nuclearStick') {
           for (let j = 0; j < sprites.length; j++) {
-            // don't check asteroid vs. asteroid collisions
             if (sprites[j].type === 'marty') {
               let nuclearStickSprite = sprites[i];
               let martySprite = sprites[j];
-              // circle vs. circle collision detection
               let dx = nuclearStickSprite.x - martySprite.x;
               let dy = nuclearStickSprite.y - martySprite.y;
 
@@ -423,7 +405,6 @@ import { getBackground } from "./background";
             } else if (sprites[j].type === 'delorean') {
               let martySprite = sprites[i];
               let delorean = sprites[j];
-              // circle vs. circle collision detection
               let dx = martySprite.x - delorean.x;
               let dy = martySprite.y - delorean.y;
 
@@ -443,8 +424,6 @@ import { getBackground } from "./background";
       sprites.map(sprite => sprite.update());
     },
     render: async () => {
-      // (await background()).render();
-      // kontra.render();
       // tileEngine && tileEngine.render();
       sprites.map(sprite => sprite.render());
       drawScore();

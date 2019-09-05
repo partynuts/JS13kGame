@@ -13,7 +13,6 @@ import {
 } from "kontra/src/kontra";
 import { setCanvasSize, getImage } from "./helper";
 import martyImagePath from '../assets/marty1.png';
-import nuclerPlantPath from "../assets/nuclearPlant.png";
 import sunPath from "../assets/sun.png";
 import moonPath from "../assets/moon.png";
 import buildingPath from "../assets/buildings.png";
@@ -81,7 +80,6 @@ import { getBackground } from "./background";
   // console.log('images', imageAssets)
 
   const martyImage = await getImage(martyImagePath);
-  const obstacleImage = await getImage(nuclerPlantPath);
   const sunObstacleImage = await getImage(sunPath);
   const moonObstacleImage = await getImage(moonPath);
   const deloreanOpen = await getImage(deloreanOpenPath);

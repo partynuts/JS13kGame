@@ -28,6 +28,7 @@ import { getBackground } from "./background";
   let score = 0;
   let energy = 3;
   let sprites = [];
+
   sprites.push(getBackground());
 
   function drawScore() {
@@ -41,6 +42,18 @@ import { getBackground } from "./background";
     context.fillStyle = "yellow";
     context.fillText("Life-Energy: " + energy, 100, 20);
   }
+  let infoTexts = Sprite({
+    type: 'info',
+    x: window.screen.width * 0.85,
+    y: window.screen.height * 0.40,
+    render() {
+      this.context.save();
+      this.context.font = "16px Arial";
+      this.context.fillStyle = "red";
+      this.context.fillText("Quick Marty, get in!", this.x, this.y);
+      this.context.restore();
+    }
+  });
 
   function createNuclearStick(x, y, color) {
     let nuclearStick = Sprite({
@@ -155,7 +168,7 @@ import { getBackground } from "./background";
       width: 130,
       height: 130,
       radius: 1,
-      dx: Math.random() * -2 -1,
+      dx: Math.random() * -2 - 1,
       // anchor: { x: 0.5, y: 0.5 },
       image: obstacleType === "sun" ? sunObstacleImage : moonObstacleImage,
       update() {
@@ -203,7 +216,7 @@ import { getBackground } from "./background";
   let spriteDelorean = Sprite({
     type: 'delorean',
     x: window.screen.width * 0.85,
-    y: 400,
+    y: window.screen.height * 0.45,
     // anchor: { x: 0.5, y: 0.5 },
     image: deloreanOpen
   });
@@ -342,12 +355,13 @@ import { getBackground } from "./background";
   // };
 
   // use kontra.gameLoop to play the animation
-  // console.log('Starting game loop...')
   GameLoop({
     update: () => {
       // console.log('update');
       if (score === 2) {
         sprites.push(spriteDelorean);
+        sprites.push(infoTexts);
+        setTimeout(() => {sprites = sprites.filter(s => s !== infoTexts)}, 2000);
       }
       // collision detection
       for (let i = 0; i < sprites.length; i++) {
@@ -359,9 +373,9 @@ import { getBackground } from "./background";
               let dx = nuclearStickSprite.x - martySprite.x;
               let dy = nuclearStickSprite.y - martySprite.y;
 
-              if (Math.sqrt(dx * dx + dy * dy) < nuclearStickSprite.width + martySprite.width - 60) {
-                nuclearStickSprite.ttl = 0;
-
+              // if (Math.sqrt(dx * dx + dy * dy) < nuclearStickSprite.width + martySprite.width - 60) {
+              if (nuclearStickSprite.collidesWith(martySprite)) {
+              nuclearStickSprite.ttl = 0;
                 score++;
                 zzfx(1, .1, 397, .5, .17, 0, .1, 0, .17); // ZzFX 14565
                 // console.log(score)
@@ -380,7 +394,7 @@ import { getBackground } from "./background";
 
               // if (Math.sqrt(dx * dx + dy * dy) < martySprite.width + obstacle.width - 160) {
               if (martySprite.collidesWith(obstacle)) {
-              console.log("COLLISION")
+                console.log("COLLISION")
                 // if (martySprite.collidesWith(obstacle)) {
                 if (energy === 1) {
                   // marty.ttl = 0;
@@ -409,7 +423,6 @@ import { getBackground } from "./background";
               let dy = martySprite.y - delorean.y;
 
               if (score >= 2 && spriteDelorean.image === deloreanOpen && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
-                console.log("#######################")
                 marty.ttl = 0;
                 spriteDelorean.image = deloreanClosed;
                 setTimeout(() => {

@@ -42,18 +42,18 @@ import { getBackground } from "./background";
     context.fillStyle = "yellow";
     context.fillText("Life-Energy: " + energy, 100, 20);
   }
-  let infoTexts = Sprite({
-    type: 'info',
-    x: window.screen.width * 0.85,
-    y: window.screen.height * 0.40,
-    render() {
-      this.context.save();
-      this.context.font = "16px Arial";
-      this.context.fillStyle = "red";
-      this.context.fillText("Quick Marty, get in!", this.x, this.y);
-      this.context.restore();
-    }
-  });
+  // let infoTexts = Sprite({
+  //   type: 'info',
+  //   x: window.screen.width * 0.85,
+  //   y: window.screen.height * 0.40,
+  //   render() {
+  //     this.context.save();
+  //     this.context.font = "16px Arial";
+  //     this.context.fillStyle = "red";
+  //     this.context.fillText("Quick Marty, get in!", this.x, this.y);
+  //     this.context.restore();
+  //   }
+  // });
 
   function createNuclearStick(x, y, color) {
     let nuclearStick = Sprite({
@@ -218,7 +218,17 @@ import { getBackground } from "./background";
     x: window.screen.width * 0.85,
     y: window.screen.height * 0.45,
     // anchor: { x: 0.5, y: 0.5 },
-    image: deloreanOpen
+    image: deloreanOpen,
+    render() {
+      this.draw();
+      if (this.image === deloreanOpen) {
+        this.context.save();
+        this.context.font = "16px Arial";
+        this.context.fillStyle = "red";
+        this.context.fillText("Quick Marty, get in!", this.x, this.y-10);
+        this.context.restore();
+      }
+    }
   });
 
   function degreesToRadians(degrees) {
@@ -360,8 +370,8 @@ import { getBackground } from "./background";
       // console.log('update');
       if (score === 2) {
         sprites.push(spriteDelorean);
-        sprites.push(infoTexts);
-        setTimeout(() => {sprites = sprites.filter(s => s !== infoTexts)}, 2000);
+        // sprites.push(infoTexts);
+        // setTimeout(() => {sprites = sprites.filter(s => s !== infoTexts)}, 2000);
       }
       // collision detection
       for (let i = 0; i < sprites.length; i++) {

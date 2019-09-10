@@ -13,12 +13,14 @@ import {
 } from "kontra/src/kontra";
 import { setCanvasSize, getImage } from "./helper";
 import martyImagePath from '../assets/marty1.png';
+import docImagePath from '../assets/doc.png';
 import sunPath from "../assets/sun.png";
 import moonPath from "../assets/moon.png";
 import buildingPath from "../assets/buildings.png";
 import deloreanOpenPath from '../assets/deloreanOpen.png';
 import deloreanClosedPath from '../assets/deloreanClosed.png';
 import { getBackground } from "./background";
+import { getDescription } from "./description";
 
 (async () => {
   let { canvas, context } = init();
@@ -28,6 +30,10 @@ import { getBackground } from "./background";
   let score = 0;
   let energy = 3;
   let sprites = [];
+
+  function findDescriptionSprite() {
+    return sprites.find(s => s.type === "description")
+  }
 
   sprites.push(getBackground());
 
@@ -42,18 +48,6 @@ import { getBackground } from "./background";
     context.fillStyle = "yellow";
     context.fillText("Life-Energy: " + energy, 100, 20);
   }
-  // let infoTexts = Sprite({
-  //   type: 'info',
-  //   x: window.screen.width * 0.85,
-  //   y: window.screen.height * 0.40,
-  //   render() {
-  //     this.context.save();
-  //     this.context.font = "16px Arial";
-  //     this.context.fillStyle = "red";
-  //     this.context.fillText("Quick Marty, get in!", this.x, this.y);
-  //     this.context.restore();
-  //   }
-  // });
 
   function createNuclearStick(x, y, color) {
     let nuclearStick = Sprite({
@@ -65,6 +59,12 @@ import { getBackground } from "./background";
       dx: Math.random() * 1.2,
       dy: Math.random() * 1.2,
       // radius: radius,
+      update() {
+        if (findDescriptionSprite()) {
+          return
+        }
+        this.advance()
+      },
       render() {
         this.context.save();
         this.context.strokeStyle = color;
@@ -87,12 +87,13 @@ import { getBackground } from "./background";
   }
 
   const martyImage = await getImage(martyImagePath);
+  const docImage = await getImage(docImagePath);
   const sunObstacleImage = await getImage(sunPath);
   const moonObstacleImage = await getImage(moonPath);
   const deloreanOpen = await getImage(deloreanOpenPath);
   const deloreanClosed = await getImage(deloreanClosedPath);
   // console.log('Image loaded.')
-  const spriteSheet = SpriteSheet({
+  const martySpriteSheet = SpriteSheet({
     image: martyImage,
     type: 'marty',
     frameWidth: 50,
@@ -160,6 +161,22 @@ import { getBackground } from "./background";
     }
   });
 
+  const docSpriteSheet = SpriteSheet({
+    image: docImage,
+    type: 'doc',
+    frameWidth: 50,
+    frameHeight: 52.5,
+    flipX: true,
+    animations: {
+      // create a named animation:
+      talk: {
+        frames: '2..3',
+        frameRate: 0.5
+      },
+    }
+  });
+
+
   function createObstacle(x, y, obstacleType) {
     const spriteObstacle = Sprite({
       type: obstacleType,
@@ -172,6 +189,9 @@ import { getBackground } from "./background";
       // anchor: { x: 0.5, y: 0.5 },
       image: obstacleType === "sun" ? sunObstacleImage : moonObstacleImage,
       update() {
+        if (findDescriptionSprite()) {
+          return
+        }
         this.__proto__.update.call(this);
         if (this.x + this.width <= 0) {
           this.x = getCanvas().width + 65;
@@ -225,7 +245,7 @@ import { getBackground } from "./background";
         this.context.save();
         this.context.font = "16px Arial";
         this.context.fillStyle = "red";
-        this.context.fillText("Quick Marty, get in!", this.x, this.y-10);
+        this.context.fillText("Quick Marty, get in!", this.x, this.y - 10);
         this.context.restore();
       }
     }
@@ -246,7 +266,7 @@ import { getBackground } from "./background";
     // anchor: { x: 0.5, y: 0.5 },
 
     // required for an animation sprite
-    animations: spriteSheet.animations,
+    animations: martySpriteSheet.animations,
 
     update() {
       this.advance();
@@ -310,6 +330,24 @@ import { getBackground } from "./background";
       }
     }
   });
+
+  const docSprite = Sprite({
+    type: 'doc',
+    x: window.screen.width * 0.8,
+    y: window.screen.height * 0.4,
+    width: 70,
+    height: 70,
+    dx: 0,
+    dy: 0,
+    // required for an animation sprite
+    animations: docSpriteSheet.animations,
+
+    update() {
+      this.advance();
+      docSprite.playAnimation("talk");
+    }
+  });
+
 // let tileEngine;
 //   let buildingImg = new Image();
 //   buildingImg.src = buildingPath;
@@ -364,13 +402,23 @@ import { getBackground } from "./background";
   //   console.log(buildingImg)
   // };
 
+  sprites.push(getDescription());
+
+  function removeDescriptionFromScreen() {
+    console.log("REMOVE DESCR")
+    sprites = sprites.filter(s => s.type !== "description")
+    getCanvas().removeEventListener("click", removeDescriptionFromScreen);
+  }
+
+  getCanvas().addEventListener("click", removeDescriptionFromScreen);
+
+
   // use kontra.gameLoop to play the animation
   GameLoop({
     update: () => {
       // console.log('update');
       if (score === 2) {
-        sprites.push(spriteDelorean);
-        // sprites.push(infoTexts);
+        sprites.push(spriteDelorean, docSprite);
         // setTimeout(() => {sprites = sprites.filter(s => s !== infoTexts)}, 2000);
       }
       // collision detection
@@ -385,7 +433,7 @@ import { getBackground } from "./background";
 
               // if (Math.sqrt(dx * dx + dy * dy) < nuclearStickSprite.width + martySprite.width - 60) {
               if (nuclearStickSprite.collidesWith(martySprite)) {
-              nuclearStickSprite.ttl = 0;
+                nuclearStickSprite.ttl = 0;
                 score++;
                 zzfx(1, .1, 397, .5, .17, 0, .1, 0, .17); // ZzFX 14565
                 // console.log(score)
@@ -435,6 +483,7 @@ import { getBackground } from "./background";
               if (score >= 2 && spriteDelorean.image === deloreanOpen && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
                 marty.ttl = 0;
                 spriteDelorean.image = deloreanClosed;
+                sprites = sprites.filter(s => s !== docSprite);
                 setTimeout(() => {
                   spriteDelorean.ddx = 0.04
                 }, 500)

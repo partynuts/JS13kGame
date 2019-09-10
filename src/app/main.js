@@ -16,7 +16,6 @@ import martyImagePath from '../assets/marty1.png';
 import docImagePath from '../assets/doc.png';
 import sunPath from "../assets/sun.png";
 import moonPath from "../assets/moon.png";
-import buildingPath from "../assets/buildings.png";
 import deloreanOpenPath from '../assets/deloreanOpen.png';
 import deloreanClosedPath from '../assets/deloreanClosed.png';
 import { getBackground } from "./background";
@@ -61,7 +60,7 @@ import { getDescription } from "./description";
   function drawEnergy() {
     context.font = "16px Arial";
     context.fillStyle = "yellow";
-    context.fillText("Life-Energy: " + energy, 100, 20);
+    context.fillText("Life-Energy: " + (marty.dying ? 0 : energy), 100, 20);
   }
 
   function createNuclearStick(x, y, color) {
@@ -113,7 +112,6 @@ import { getDescription } from "./description";
     type: 'marty',
     frameWidth: 50,
     frameHeight: 52.5,
-    flipX: true,
     animations: {
       // create a named animation:
       fly: {
@@ -124,7 +122,6 @@ import { getDescription } from "./description";
       fly2: {
         frames: '0..2',
         frameRate: 3,
-        flipX: true
       },
 
       accelerate: {
@@ -181,7 +178,6 @@ import { getDescription } from "./description";
     type: 'doc',
     frameWidth: 50,
     frameHeight: 52.5,
-    flipX: true,
     animations: {
       // create a named animation:
       talk: {
@@ -286,10 +282,9 @@ import { getDescription } from "./description";
     update() {
       this.advance();
 
-      if (marty.dying) {
+      if (marty.dying || marty.ouch || findDescriptionSprite()) {
         return
       }
-
       // rotate the element left or right. --> do I need this?
       const cos = Math.cos(degreesToRadians(this.rotation));
       const sin = Math.sin(degreesToRadians(this.rotation));
@@ -335,10 +330,11 @@ import { getDescription } from "./description";
         this.ddy = sin * 0.05;
         zzfx(1, .1, 12, .4, .02, 1.1, 0, 0, .22); // ZzFX 4869
         marty.playAnimation('fly')
-
+        this.width = 70;
       } else if (keyPressed('left')) {
         this.ddx = cos * -0.05;
         this.ddy = sin * -0.05;
+        this.width = -70;
         marty.playAnimation('fly2')
       } else {
         this.ddx = this.ddy = 0;
@@ -421,18 +417,22 @@ import { getDescription } from "./description";
                 if (energy === 1) {
                   setInterval(() => {
                     marty.dx = 0;
-                    marty.y += -1;
+                    marty.dy = -4;
                     marty.playAnimation('die');
                     marty.dying = true;
                   }, 100);
 
-                  setTimeout(()=> sprites.push(getDescription(descriptionText.dead)), 1500);
+                  setTimeout(() => sprites.push(getDescription(descriptionText.dead)), 1500);
                   getCanvas().addEventListener("click", removeDescriptionFromScreen);
                 } else {
                   marty.playAnimation('fall');
                   energy -= 1;
-                  marty.x = obstacle.x - 200;
+                  marty.x = obstacle.x - 300;
                   marty.dx = 0;
+                  marty.ouch = true;
+                  setTimeout(() => {
+                    marty.ouch = false
+                  }, 500);
                   zzfx(1, .1, 52, .5, .26, .3, 4.4, 17.8, .03); // ZzFX 33201
                 }
               }

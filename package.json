@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "start": "webpack-dev-server --mode development",
-    "build": "webpack --mode production",
+    "build": "rm -rf dist; webpack --mode production",
     "postbuild": "node postbuild.js"
   },
   "devDependencies": {
@@ -21,6 +21,6 @@
   },
   "dependencies": {
     "image-webpack-loader": "^5.0.0",
-    "kontra": "git+https://github.com/nkholski/kontra.git"
+    "kontra": "^6.5.0"
   }
 }

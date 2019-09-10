@@ -31,6 +31,21 @@ import { getDescription } from "./description";
   let energy = 3;
   let sprites = [];
 
+  const descriptionText = {
+    level1: {
+      line1: "Marty! The Delorean needs fuel to bring you and Doc Brown back. Be Quick and collect 20 nuclear sticks",
+      line2: "to get the Delorean running. But be carefull to not hit the moon or the sun!",
+      line3: "Click to start!"
+    },
+    dead: {
+      line1: "You are dead and the world is lost now.",
+      line2: "",
+      line3: "Click to start new game!"
+    }
+  };
+
+  console.log("DESC", descriptionText.level1)
+
   function findDescriptionSprite() {
     return sprites.find(s => s.type === "description")
   }
@@ -348,66 +363,15 @@ import { getDescription } from "./description";
     }
   });
 
-// let tileEngine;
-//   let buildingImg = new Image();
-//   buildingImg.src = buildingPath;
-//
-//   let spriteSkyscraper = Sprite({
-//     x: 200,
-//     y: 400,
-//     width: 900,
-//     height: 900,
-//     anchor: { x: 0.5, y: 0.5 },
-//
-//     // required for an image sprite
-//     image: buildingImg
-//   });
-
   sprites.push(marty);
-
-  // buildingImg.onload = () => {
-  //   console.log("########### TILE ENGINE STARTED ")
-  //
-  //   tileEngine = TileEngine({
-  //
-  //     // tile size
-  //     tilewidth: 100,
-  //     tileheight: 100,
-  //
-  //     // map size in tiles
-  //     width: 20,
-  //     height: 50,
-  //
-  //     // tileset object
-  //     tilesets: [{
-  //       firstgid: 1,
-  //       margin: 30,
-  //       image: buildingImg
-  //     }],
-  //
-  //     // layer object
-  //     layers: [{
-  //       name: 'skyscraper',
-  //       data: [0, 0, 0, 0, 0, 0, 0, 0, 0,
-  //         0, 0, 6, 7, 7, 8, 0, 0, 0,
-  //         0, 6, 27, 24, 24, 25, 0, 0, 0,
-  //         0, 23, 24, 24, 24, 26, 8, 0, 0,
-  //         0, 23, 24, 24, 24, 24, 26, 8, 0,
-  //         0, 23, 24, 24, 24, 24, 24, 25, 0,
-  //         0, 40, 41, 41, 10, 24, 24, 25, 0,
-  //         0, 0, 0, 0, 40, 41, 41, 42, 0,
-  //         0, 0, 0, 0, 0, 0, 0, 0, 0]
-  //     }]
-  //   });
-  //   console.log(buildingImg)
-  // };
-
-  sprites.push(getDescription());
+  sprites.push(getDescription(descriptionText.level1));
 
   function removeDescriptionFromScreen() {
-    console.log("REMOVE DESCR")
-    sprites = sprites.filter(s => s.type !== "description")
+    sprites = sprites.filter(s => s.type !== "description");
     getCanvas().removeEventListener("click", removeDescriptionFromScreen);
+    if (marty.dying) {
+      location.reload();
+    }
   }
 
   getCanvas().addEventListener("click", removeDescriptionFromScreen);
@@ -455,17 +419,15 @@ import { getDescription } from "./description";
                 console.log("COLLISION")
                 // if (martySprite.collidesWith(obstacle)) {
                 if (energy === 1) {
-                  // marty.ttl = 0;
                   setInterval(() => {
                     marty.dx = 0;
                     marty.y += -1;
-                    // marty.ddx = 2;
-                    // marty.ddy = 2;
                     marty.playAnimation('die');
                     marty.dying = true;
                   }, 100);
 
-                  // setTimeout(()=> alert("Game Over!"), 2000)
+                  setTimeout(()=> sprites.push(getDescription(descriptionText.dead)), 1500);
+                  getCanvas().addEventListener("click", removeDescriptionFromScreen);
                 } else {
                   marty.playAnimation('fall');
                   energy -= 1;

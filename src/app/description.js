@@ -1,10 +1,11 @@
 import { getCanvas, Sprite } from "kontra/src/kontra";
 
-export function getDescription() {
-  return genDescription(getCanvas().width, getCanvas().height);
+export function getDescription(descriptionText) {
+  return genDescription(descriptionText, getCanvas().width, getCanvas().height);
 }
 
-function genDescription() {
+function genDescription(descriptionText) {
+  console.log("descr text",descriptionText)
   const descrCtx = getCanvas();
   // draw a random starfield on the canvas
   return Sprite({
@@ -23,8 +24,9 @@ function genDescription() {
       this.context.font = "24px Marker Felt";
       this.context.fillStyle = "white";
 
-      this.context.fillText("Marty! The Delorean needs fuel to bring you and Doc Brown back. Be Quick and collect 20 nuclear sticks", 250, 150);
-      this.context.fillText("to get the Delorean running. But be carefull to not hit the moon or the sun!",250, 190);
+      this.context.fillText(descriptionText.line1,250, 150);
+      this.context.fillText(descriptionText.line2,250, 190);
+      this.context.fillText(descriptionText.line3,250, 230);
       this.context.restore();
     },
     update() {

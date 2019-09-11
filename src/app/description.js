@@ -5,7 +5,6 @@ export function getDescription(descriptionText) {
 }
 
 function genDescription(descriptionText) {
-  console.log("descr text",descriptionText)
   const descrCtx = getCanvas();
   // draw a random starfield on the canvas
   return Sprite({
@@ -21,7 +20,7 @@ function genDescription(descriptionText) {
       this.context.globalAlpha = this.opacity;
       this.context.fillStyle = `rgba(0,0,0,${this.opacity})`;
       this.context.fillRect(this.x, this.y, this.width, this.height);
-      this.context.font = "24px Marker Felt";
+      this.context.font = "32px Courier New bold";
       this.context.fillStyle = "white";
 
       this.context.fillText(descriptionText.line1,250, 150);

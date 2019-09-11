@@ -32,8 +32,8 @@ import { getDescription } from "./description";
 
   const descriptionText = {
     level1: {
-      line1: "Marty! The Delorean needs fuel to bring you and Doc Brown back. Be Quick and collect 20 nuclear sticks",
-      line2: "to get the Delorean running. But be carefull to not hit the moon or the sun!",
+      line1: "Marty! The DeLorean needs fuel to bring you and Doc Brown back. Be Quick and collect 20 energy sticks",
+      line2: "to get the DeLorean running. But be careful not hit the moon or the sun!",
       line3: "Click to start!"
     },
     dead: {
@@ -72,12 +72,19 @@ import { getDescription } from "./description";
       height: 50,
       dx: Math.random() * 1.2,
       dy: Math.random() * 1.2,
-      // radius: radius,
+      radius: 50,
       update() {
         if (findDescriptionSprite()) {
           return
         }
         this.advance()
+      },
+      collidesWithRound(object) {
+        let dx = this.x - object.x;
+        let dy = this.y - object.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        return distance < this.radius + object.radius;
       },
       render() {
         this.context.save();
@@ -195,7 +202,7 @@ import { getDescription } from "./description";
       y: y,
       width: 130,
       height: 130,
-      radius: 1,
+      radius: 50,
       dx: Math.random() * -2 - 1,
       // anchor: { x: 0.5, y: 0.5 },
       image: obstacleType === "sun" ? sunObstacleImage : moonObstacleImage,
@@ -248,8 +255,16 @@ import { getDescription } from "./description";
     type: 'delorean',
     x: window.screen.width * 0.85,
     y: window.screen.height * 0.45,
+    radius: 20,
     // anchor: { x: 0.5, y: 0.5 },
     image: deloreanOpen,
+    collidesWithRound(object) {
+      let dx = this.x - object.x;
+      let dy = this.y - object.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+
+      return distance < this.radius + object.radius;
+    },
     render() {
       this.draw();
       if (this.image === deloreanOpen) {
@@ -274,6 +289,23 @@ import { getDescription } from "./description";
     height: 70,
     dx: 0,
     dy: 0,
+    radius: 10,
+    stop () {
+      this.dx = 0;
+      this.ddx = 0;
+    },
+    stopY() {
+      this.dy = 0;
+      this.ddy = 0;
+      console.log("stop2")
+    },
+    collidesWithRound(object) {
+     let dx = this.x - object.x;
+     let dy = this.y - object.y;
+     let distance = Math.sqrt(dx * dx + dy * dy);
+
+     return distance < this.radius + object.radius;
+   },
     // anchor: { x: 0.5, y: 0.5 },
 
     // required for an animation sprite
@@ -281,6 +313,22 @@ import { getDescription } from "./description";
 
     update() {
       this.advance();
+      if (this.x <= 0) {
+        this.x = 0
+      }
+      if (this.x >= window.screen.width - this.width) {
+        console.log("POSITION", window.screen.width, this.x);
+        this.stop();
+        this.x = window.screen.width - this.width;
+      }
+      if (this.y <= 0 && !marty.dying) {
+        this.y = 0
+      }
+      if (this.y >= window.screen.height - this.height) {
+        console.log("POSITION", window.screen.height, this.y);
+        this.stopY();
+        this.y = window.screen.height - this.height;
+      }
 
       if (marty.dying || marty.ouch || findDescriptionSprite()) {
         return
@@ -388,15 +436,16 @@ import { getDescription } from "./description";
             if (sprites[j].type === 'marty') {
               let nuclearStickSprite = sprites[i];
               let martySprite = sprites[j];
-              let dx = nuclearStickSprite.x - martySprite.x;
-              let dy = nuclearStickSprite.y - martySprite.y;
+              // let dx = nuclearStickSprite.x - martySprite.x;
+              // let dy = nuclearStickSprite.y - martySprite.y;
 
               // if (Math.sqrt(dx * dx + dy * dy) < nuclearStickSprite.width + martySprite.width - 60) {
-              if (nuclearStickSprite.collidesWith(martySprite)) {
+              if (nuclearStickSprite.collidesWithRound(martySprite)) {
+                if (!marty.dying) {
                 nuclearStickSprite.ttl = 0;
                 score++;
                 zzfx(1, .1, 397, .5, .17, 0, .1, 0, .17); // ZzFX 14565
-                // console.log(score)
+                }
               }
             }
           }
@@ -411,7 +460,7 @@ import { getDescription } from "./description";
               let dy = martySprite.y - obstacle.y;
 
               // if (Math.sqrt(dx * dx + dy * dy) < martySprite.width + obstacle.width - 160) {
-              if (martySprite.collidesWith(obstacle)) {
+              if (martySprite.collidesWithRound(obstacle)) {
                 console.log("COLLISION")
                 // if (martySprite.collidesWith(obstacle)) {
                 if (energy === 1) {
@@ -442,7 +491,7 @@ import { getDescription } from "./description";
               let dx = martySprite.x - delorean.x;
               let dy = martySprite.y - delorean.y;
 
-              if (score >= 2 && spriteDelorean.image === deloreanOpen && (Math.sqrt(dx * dx + dy * dy) < martySprite.width + delorean.width - 100)) {
+              if (score >= 2 && spriteDelorean.image === deloreanOpen && martySprite.collidesWithRound(delorean)) {
                 marty.ttl = 0;
                 spriteDelorean.image = deloreanClosed;
                 sprites = sprites.filter(s => s !== docSprite);

@@ -1,7 +1,6 @@
 import { getCanvas, Sprite } from "kontra/src/kontra";
 
 export function getBackground() {
-  console.log("Background")
   const backImage = genRandomStarsImage(getCanvas().width, getCanvas().height);
 
   return Sprite({

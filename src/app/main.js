@@ -32,18 +32,22 @@ import { getDescription } from "./description";
 
   const descriptionText = {
     level1: {
-      line1: "Marty! The DeLorean needs fuel to bring you and Doc Brown back. Be Quick and collect 20 energy sticks",
-      line2: "to get the DeLorean running. But be careful not hit the moon or the sun!",
+      line1: "Marty! The DeLorean needs fuel to bring you and Doc Brown back to the future. Be Quick and collect ",
+      line2: "20 energy sticks to get the DeLorean running. But be careful not hit the moon or the sun!",
       line3: "Click to start!"
     },
     dead: {
       line1: "You are dead and the world is lost now.",
       line2: "",
       line3: "Click to start new game!"
+    },
+    level2: {
+      line1: "Marty, you made it! The DeLorean is ready to bring you back to the future and save the past.",
+      line2: "But be careful, Biff will not make it easy for you! Let's go!",
+      line3: "Click to start!"
     }
   };
 
-  console.log("DESC", descriptionText.level1)
 
   function findDescriptionSprite() {
     return sprites.find(s => s.type === "description")
@@ -256,7 +260,6 @@ import { getDescription } from "./description";
     x: window.screen.width * 0.85,
     y: window.screen.height * 0.45,
     radius: 20,
-    // anchor: { x: 0.5, y: 0.5 },
     image: deloreanOpen,
     collidesWithRound(object) {
       let dx = this.x - object.x;
@@ -290,23 +293,19 @@ import { getDescription } from "./description";
     dx: 0,
     dy: 0,
     radius: 10,
-    stop () {
-      this.dx = 0;
-      this.ddx = 0;
+    stop() {
+      this.ddx = this.dx = 0;
     },
     stopY() {
-      this.dy = 0;
-      this.ddy = 0;
-      console.log("stop2")
+      this.ddy = this.dy = 0;
     },
     collidesWithRound(object) {
-     let dx = this.x - object.x;
-     let dy = this.y - object.y;
-     let distance = Math.sqrt(dx * dx + dy * dy);
+      let dx = (this.x + this.width / 2) - (object.x + object.width / 2);
+      let dy = (this.y + this.height / 2) - (object.y + object.height / 2);
+      let distance = Math.sqrt(dx * dx + dy * dy);
 
-     return distance < this.radius + object.radius;
-   },
-    // anchor: { x: 0.5, y: 0.5 },
+      return distance < this.radius + object.radius;
+    },
 
     // required for an animation sprite
     animations: martySpriteSheet.animations,
@@ -316,21 +315,19 @@ import { getDescription } from "./description";
       if (this.x <= 0) {
         this.x = 0
       }
-      if (this.x >= window.screen.width - this.width) {
-        console.log("POSITION", window.screen.width, this.x);
+      if (this.x >= canvas.width - this.width) {
         this.stop();
-        this.x = window.screen.width - this.width;
+        this.x = canvas.width - this.width;
       }
       if (this.y <= 0 && !marty.dying) {
         this.y = 0
       }
-      if (this.y >= window.screen.height - this.height) {
-        console.log("POSITION", window.screen.height, this.y);
+      if (this.y >= canvas.height - this.height) {
         this.stopY();
-        this.y = window.screen.height - this.height;
+        this.y = canvas.height - this.height;
       }
 
-      if (marty.dying || marty.ouch || findDescriptionSprite()) {
+      if (marty.dying || marty.ouch || findDescriptionSprite() || marty.currentAnimation == marty.animations.salto) {
         return
       }
       // rotate the element left or right. --> do I need this?
@@ -339,37 +336,36 @@ import { getDescription } from "./description";
 
       if (keyPressed('down')) {
         // this.rotation += -1
-        this.x += -1;
-        this.y += 1.5;
+        this.dx = -1;
+        this.dy = 1.5;
+
         marty.playAnimation('flyDown')
       } else if (keyPressed('up')) {
         // this.rotation += 1
-        this.x += 1;
-        this.y += -1.5;
+        this.dx = 1;
+        this.dy = -1.5;
+
         marty.playAnimation('flyUp')
 
       } else if (keyPressed('space')) {
-        // this.rotation += 1
-        let movementUp = setInterval(() => {
-          // this.x += 1.5;
-          this.y += -4;
-          this.ddx = cos * 0.1;
-          this.ddy = sin * 0.1;
-        }, 100);
+        this.dx = 1.5;
+        this.dy = -4;
+        setTimeout(() => {
+          this.dx = 1;
+          this.dy = 4
+        }, 1000);
 
-        let movementDown = setInterval(() => {
-          this.x += 1;
-          this.y += 1.5;
-          this.ddx = cos * 0.1;
-          this.ddy = sin * 0.1;
-        }, 100);
+        setTimeout(() => {
+          this.dx = 0;
+          this.dy = 0;
+          marty.playAnimation('fly')
+        }, 2000)
 
-
-        setTimeout(() => clearInterval(movementUp), 1000);
-        setTimeout(() => movementDown(), 1000);
-        setTimeout(() => clearInterval(movementDown), 2000);
         marty.playAnimation('salto');
         zzfx(.8, 0, 220, 1, .1, 1.2, 0, 0, 0); // ZzFX 0
+      } else {
+        this.dy = 0;
+        marty.playAnimation('fly')
       }
       // move marty forward in the direction it's facing
 
@@ -415,6 +411,8 @@ import { getDescription } from "./description";
     getCanvas().removeEventListener("click", removeDescriptionFromScreen);
     if (marty.dying) {
       location.reload();
+    } else if (marty.level2) {
+      (console.log("NEXT LEVEL!"))
     }
   }
 
@@ -424,7 +422,6 @@ import { getDescription } from "./description";
   // use kontra.gameLoop to play the animation
   GameLoop({
     update: () => {
-      // console.log('update');
       if (score === 2) {
         sprites.push(spriteDelorean, docSprite);
         // setTimeout(() => {sprites = sprites.filter(s => s !== infoTexts)}, 2000);
@@ -442,9 +439,9 @@ import { getDescription } from "./description";
               // if (Math.sqrt(dx * dx + dy * dy) < nuclearStickSprite.width + martySprite.width - 60) {
               if (nuclearStickSprite.collidesWithRound(martySprite)) {
                 if (!marty.dying) {
-                nuclearStickSprite.ttl = 0;
-                score++;
-                zzfx(1, .1, 397, .5, .17, 0, .1, 0, .17); // ZzFX 14565
+                  nuclearStickSprite.ttl = 0;
+                  score++;
+                  zzfx(1, .1, 397, .5, .17, 0, .1, 0, .17); // ZzFX 14565
                 }
               }
             }
@@ -461,7 +458,6 @@ import { getDescription } from "./description";
 
               // if (Math.sqrt(dx * dx + dy * dy) < martySprite.width + obstacle.width - 160) {
               if (martySprite.collidesWithRound(obstacle)) {
-                console.log("COLLISION")
                 // if (martySprite.collidesWith(obstacle)) {
                 if (energy === 1) {
                   setInterval(() => {
@@ -476,7 +472,8 @@ import { getDescription } from "./description";
                 } else {
                   marty.playAnimation('fall');
                   energy -= 1;
-                  marty.x = obstacle.x - 300;
+                  marty.x += -90 * marty.dx;
+                  marty.y -= 90 * marty.dy;
                   marty.dx = 0;
                   marty.ouch = true;
                   setTimeout(() => {
@@ -493,11 +490,14 @@ import { getDescription } from "./description";
 
               if (score >= 2 && spriteDelorean.image === deloreanOpen && martySprite.collidesWithRound(delorean)) {
                 marty.ttl = 0;
+                marty.level2 = true;
                 spriteDelorean.image = deloreanClosed;
                 sprites = sprites.filter(s => s !== docSprite);
                 setTimeout(() => {
                   spriteDelorean.ddx = 0.04
                 }, 500)
+                setTimeout(() => sprites.push(getDescription(descriptionText.level2)), 1500);
+                getCanvas().addEventListener("click", removeDescriptionFromScreen);
               }
             }
           }

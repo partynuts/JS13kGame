@@ -192,7 +192,7 @@ import { getDescription } from "./description";
     animations: {
       // create a named animation:
       talk: {
-        frames: '2..3',
+        frames: '0..1',
         frameRate: 0.5
       },
     }
@@ -208,7 +208,6 @@ import { getDescription } from "./description";
       height: 130,
       radius: 50,
       dx: Math.random() * -2 - 1,
-      // anchor: { x: 0.5, y: 0.5 },
       image: obstacleType === "sun" ? sunObstacleImage : moonObstacleImage,
       update() {
         if (findDescriptionSprite()) {

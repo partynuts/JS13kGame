@@ -12,8 +12,8 @@ import {
   getCanvas
 } from "kontra/src/kontra";
 import { setCanvasSize, getImage } from "./helper";
-import martyImagePath from '../assets/marty1.png';
-import docImagePath from '../assets/doc.png';
+import martyImagePath from '../assets/marty1.gif';
+import docImagePath from '../assets/doc.gif';
 import sunPath from "../assets/sun.png";
 import moonPath from "../assets/moon.png";
 import deloreanOpenPath from '../assets/deloreanOpen.png';
@@ -121,8 +121,8 @@ import { getDescription } from "./description";
   const martySpriteSheet = SpriteSheet({
     image: martyImage,
     type: 'marty',
-    frameWidth: 50,
-    frameHeight: 52.5,
+    frameWidth: 25,
+    frameHeight: 26.25,
     animations: {
       // create a named animation:
       fly: {
@@ -146,12 +146,12 @@ import { getDescription } from "./description";
       },
 
       flyDown: {
-        frames: '36..38',
+        frames: '43..45', //36..38
         frameRate: 3
       },
 
       flyUp: {
-        frames: '15..17',
+        frames: '11..13',
         frameRate: 3
       },
 
@@ -258,6 +258,8 @@ import { getDescription } from "./description";
     type: 'delorean',
     x: window.screen.width * 0.85,
     y: window.screen.height * 0.45,
+    width: 200,
+    height: 80,
     radius: 20,
     image: deloreanOpen,
     collidesWithRound(object) {
@@ -326,16 +328,16 @@ import { getDescription } from "./description";
         this.y = canvas.height - this.height;
       }
 
-      if (marty.dying || marty.ouch || findDescriptionSprite() || marty.currentAnimation == marty.animations.salto) {
+      if (marty.dying || marty.ouch || findDescriptionSprite() || marty.currentAnimation === marty.animations.salto) {
         return
       }
       // rotate the element left or right. --> do I need this?
       const cos = Math.cos(degreesToRadians(this.rotation));
       const sin = Math.sin(degreesToRadians(this.rotation));
-
+console.log(keyPressed("up"), keyPressed('right'), keyPressed('down'));
       if (keyPressed('down')) {
         // this.rotation += -1
-        this.dx = -1;
+        this.dx = 1;
         this.dy = 1.5;
 
         marty.playAnimation('flyDown')

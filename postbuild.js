@@ -1,49 +1,110 @@
-const fs = require('fs')
-const archiver = require('archiver')
+const fs = require("fs");
+const archiver = require("archiver");
+const { execFile } = require("child_process");
 
-fs.unlinkSync('./dist/main.js')
-fs.unlinkSync('./dist/main.css')
+fs.unlinkSync("./dist/main.js");
+fs.unlinkSync("./dist/main.css");
 
-let output = fs.createWriteStream('./dist/build.zip')
-let archive = archiver('zip', {
+const zipDist = "./dist/build.zip";
+let output = fs.createWriteStream(zipDist);
+let archive = archiver("zip", {
   zlib: { level: 9 } // set compression to best
-})
+});
 
-const MAX = 13 * 1024 // 13kb
+const MAX = 13 * 1024; // 13kb
 
-output.on('close', function () {
-  const bytes = archive.pointer()
-  const percent = (bytes / MAX * 100).toFixed(2)
-  if (bytes > MAX) {
-    console.error(`Size overflow: ${bytes} bytes (${percent}%)`)
+output.on("close", function() {
+  let bytes = archive.pointer();
+  let percent = (bytes / MAX * 100).toFixed(2);
+
+  console.log(`Normal zip size: ${bytes} bytes (${percent}%)`);
+  execFile("./bin/ect", ["-9", "-zip", zipDist], err => {
+    const stats = fs.statSync(zipDist);
+    bytes = stats.size;
+    percent = (bytes / MAX * 100).toFixed(2);
+
+    if (bytes > MAX) {
+      console.error(`ect size overflow: ${bytes} bytes (${percent}%)`);
+    } else {
+      console.log(`ect size: ${bytes} bytes (${percent}%)`);
+    }
+  });
+});
+
+archive.on("warning", function(err) {
+  if (err.code === "ENOENT") {
+    console.warn(err);
   } else {
-    console.log(`Size: ${bytes} bytes (${percent}%)`)
+    throw err;
   }
-})
+});
 
-archive.on('warning', function (err) {
-  if (err.code === 'ENOENT') {
-    console.warn(err)
-  } else {
-    throw err
-  }
-})
+archive.on("error", function(err) {
+  throw err;
+});
 
-archive.on('error', function (err) {
-  throw err
-})
+archive.pipe(output);
+archive.append(fs.createReadStream("./dist/index.html"), {
+  name: "index.html"
+});
 
-archive.pipe(output)
-archive.append(
-  fs.createReadStream('./dist/index.html'), {
-    name: 'index.html'
-  }
-)
+fs.readdirSync("./dist").filter(f => f.endsWith("png") || f.endsWith("gif")).forEach(file => {
+  archive.append(fs.createReadStream(`./dist/${file}`), {
+    name: file
+  });
+});
 
-fs.readdirSync('./dist').filter(filename => filename.endsWith("png")).forEach(filename => archive.append(
-  fs.createReadStream(`./dist/${filename}`), {
-    name: filename
-  })
-)
+archive.finalize();
 
-archive.finalize()
+
+
+//
+// const fs = require('fs')
+// const archiver = require('archiver')
+//
+// fs.unlinkSync('./dist/main.js')
+// fs.unlinkSync('./dist/main.css')
+//
+// let output = fs.createWriteStream('./dist/build.zip')
+// let archive = archiver('zip', {
+//   zlib: { level: 9 } // set compression to best
+// })
+//
+// const MAX = 13 * 1024 // 13kb
+//
+// output.on('close', function () {
+//   const bytes = archive.pointer()
+//   const percent = (bytes / MAX * 100).toFixed(2)
+//   if (bytes > MAX) {
+//     console.error(`Size overflow: ${bytes} bytes (${percent}%)`)
+//   } else {
+//     console.log(`Size: ${bytes} bytes (${percent}%)`)
+//   }
+// })
+//
+// archive.on('warning', function (err) {
+//   if (err.code === 'ENOENT') {
+//     console.warn(err)
+//   } else {
+//     throw err
+//   }
+// })
+//
+// archive.on('error', function (err) {
+//   throw err
+// })
+//
+// archive.pipe(output)
+// archive.append(
+//   fs.createReadStream('./dist/index.html'), {
+//     name: 'index.html'
+//   }
+// )
+//
+// fs.readdirSync('./dist').filter(filename => filename.endsWith("png")).forEach(filename => archive.append(
+//   fs.createReadStream(`./dist/${filename}`), {
+//     name: filename
+//   })
+// )
+//
+// archive.finalize()

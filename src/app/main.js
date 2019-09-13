@@ -6,13 +6,10 @@ import {
   SpriteSheet,
   imageAssets,
   setImagePath,
-  keyPressed,
   GameLoop,
-  TileEngine,
   getCanvas
 } from "kontra/src/kontra";
 import { setCanvasSize, getImage } from "./helper";
-import martyImagePath from '../assets/marty1.gif';
 import docImagePath from '../assets/doc.gif';
 import sunPath from "../assets/sun.png";
 import moonPath from "../assets/moon.png";
@@ -20,6 +17,8 @@ import deloreanOpenPath from '../assets/deloreanOpen.png';
 import deloreanClosedPath from '../assets/deloreanClosed.png';
 import { getBackground } from "./background";
 import { getDescription } from "./description";
+import { descriptionText } from "./description-texts";
+import { getMarty } from "./entities/marty";
 
 (async () => {
   let { canvas, context } = init();
@@ -29,27 +28,6 @@ import { getDescription } from "./description";
   let score = 0;
   let energy = 3;
   let sprites = [];
-
-  const descriptionText = {
-    level1: [
-      "Marty! The DeLorean needs fuel to bring you and Doc Brown back to the future. Be Quick and collect ",
-      "20 energy sticks to get the DeLorean running. But be careful not hit the moon or the sun!",
-      "",
-      "Click to start!"
-    ],
-    dead: [
-      "You are dead and the world is lost now.",
-      "",
-      "Click to start new game!"
-    ],
-    level2: [
-      "Marty, you made it! The DeLorean is ready to bring you back to the future and save the past.",
-      "But be careful, Biff will not make it easy for you! Let's go!",
-      "",
-      "Click to start!"
-    ]
-  };
-
 
   function findDescriptionSprite() {
     return sprites.find(s => s.type === "description")
@@ -108,83 +86,18 @@ import { getDescription } from "./description";
     sprites.push(nuclearStick);
   }
 
+  // place nuclear Sticks on screen
   for (let i = 0; i < 20; i++) {
     createNuclearStick(200, -10, "springgreen");
     createNuclearStick(550, -10, "springgreen");
   }
 
-  const martyImage = await getImage(martyImagePath);
   const docImage = await getImage(docImagePath);
   const sunObstacleImage = await getImage(sunPath);
   const moonObstacleImage = await getImage(moonPath);
   const deloreanOpen = await getImage(deloreanOpenPath);
   const deloreanClosed = await getImage(deloreanClosedPath);
-  // console.log('Image loaded.')
-  const martySpriteSheet = SpriteSheet({
-    image: martyImage,
-    type: 'marty',
-    frameWidth: 25,
-    frameHeight: 26.25,
-    animations: {
-      // create a named animation:
-      fly: {
-        frames: '0..2',
-        frameRate: 3
-      },
-
-      fly2: {
-        frames: '0..2',
-        frameRate: 3,
-      },
-
-      accelerate: {
-        frames: '4..6',
-        frameRate: 3
-      },
-
-      speedDown1: {
-        frames: '21..23',
-        frameRate: 3
-      },
-
-      flyDown: {
-        frames: '43..45', //36..38
-        frameRate: 3
-      },
-
-      flyUp: {
-        frames: '11..13',
-        frameRate: 3
-      },
-
-      salto: {
-        frames: '43..52',
-        frameRate: 4,
-        loop: false
-      },
-
-      break: {
-        frames: '58..59',
-        frameRate: 3
-      },
-
-      fall: {
-        frames: '96..97',
-        frameRate: 4,
-        loop: false
-      },
-
-      die: {
-        frames: '99..100',
-        frameRate: 4,
-      }
-
-      // speedDown: {
-      //   frames: '54..56',  // frames 0 through 9
-      //   frameRate: 3
-      // }
-    }
-  });
+  const marty = await getMarty(findDescriptionSprite);
 
   const docSpriteSheet = SpriteSheet({
     image: docImage,
@@ -283,111 +196,6 @@ import { getDescription } from "./description";
     }
   });
 
-  function degreesToRadians(degrees) {
-    return degrees * Math.PI / 180;
-  }
-
-  const marty = Sprite({
-    type: 'marty',
-    x: 100,
-    y: 500,
-    width: 70,
-    height: 70,
-    dx: 0,
-    dy: 0,
-    radius: 10,
-    stop() {
-      this.ddx = this.dx = 0;
-    },
-    stopY() {
-      this.ddy = this.dy = 0;
-    },
-    collidesWithRound(object) {
-      let dx = (this.x + this.width / 2) - (object.x + object.width / 2);
-      let dy = (this.y + this.height / 2) - (object.y + object.height / 2);
-      let distance = Math.sqrt(dx * dx + dy * dy);
-
-      return distance < this.radius + object.radius;
-    },
-
-    // required for an animation sprite
-    animations: martySpriteSheet.animations,
-
-    update() {
-      this.advance();
-      if (this.x <= 0) {
-        this.x = 0
-      }
-      if (this.x >= canvas.width - this.width) {
-        this.stop();
-        this.x = canvas.width - this.width;
-      }
-      if (this.y <= 0 && !marty.dying) {
-        this.y = 0
-      }
-      if (this.y >= canvas.height - this.height) {
-        this.stopY();
-        this.y = canvas.height - this.height;
-      }
-
-      if (marty.dying || marty.ouch || findDescriptionSprite() || marty.currentAnimation === marty.animations.salto) {
-        return
-      }
-      // rotate the element left or right. --> do I need this?
-      const cos = Math.cos(degreesToRadians(this.rotation));
-      const sin = Math.sin(degreesToRadians(this.rotation));
-console.log(keyPressed("up"), keyPressed('right'), keyPressed('down'));
-      if (keyPressed('down')) {
-        // this.rotation += -1
-        this.dx = 1;
-        this.dy = 1.5;
-
-        marty.playAnimation('flyDown')
-      } else if (keyPressed('up')) {
-        // this.rotation += 1
-        this.dx = 1;
-        this.dy = -1.5;
-
-        marty.playAnimation('flyUp')
-
-      } else if (keyPressed('space')) {
-        this.dx = 1.5;
-        this.dy = -4;
-        setTimeout(() => {
-          this.dx = 1;
-          this.dy = 4
-        }, 1000);
-
-        setTimeout(() => {
-          this.dx = 0;
-          this.dy = 0;
-          marty.playAnimation('fly')
-        }, 2000)
-
-        marty.playAnimation('salto');
-        zzfx(.8, 0, 220, 1, .1, 1.2, 0, 0, 0); // ZzFX 0
-      } else {
-        this.dy = 0;
-        marty.playAnimation('fly')
-      }
-      // move marty forward in the direction it's facing
-
-      if (keyPressed('right')) {
-        this.ddx = cos * 0.05;
-        this.ddy = sin * 0.05;
-        zzfx(1, .1, 12, .4, .02, 1.1, 0, 0, .22); // ZzFX 4869
-        marty.playAnimation('fly')
-        this.width = 70;
-      } else if (keyPressed('left')) {
-        this.ddx = cos * -0.05;
-        this.ddy = sin * -0.05;
-        this.width = -70;
-        marty.playAnimation('fly2')
-      } else {
-        this.ddx = this.ddy = 0;
-      }
-    }
-  });
 
   const docSprite = Sprite({
     type: 'doc',

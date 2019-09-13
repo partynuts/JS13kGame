@@ -23,9 +23,11 @@ function genDescription(descriptionText) {
       this.context.font = "32px Courier New bold";
       this.context.fillStyle = "white";
 
-      this.context.fillText(descriptionText.line1,250, 150);
-      this.context.fillText(descriptionText.line2,250, 190);
-      this.context.fillText(descriptionText.line3,250, 230);
+      descriptionText.map((line, i) => this.context.fillText(line,250, 150+i*40));
+
+      // this.context.fillText(overlayText,250, 150);
+      // this.context.fillText(descriptionText.line2,250, 190);
+      // this.context.fillText(descriptionText.line3,250, 230);
       this.context.restore();
     },
     update() {

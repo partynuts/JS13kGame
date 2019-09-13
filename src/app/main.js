@@ -21,7 +21,9 @@ import { descriptionText } from "./description-texts";
 import { getMarty } from "./entities/marty";
 
 (async () => {
-  let { canvas, context } = init();
+  let { canvas, context } = init('canvas');
+  console.log(canvas)
+
   initKeys();
   setCanvasSize();
 
@@ -33,7 +35,8 @@ import { getMarty } from "./entities/marty";
     return sprites.find(s => s.type === "description")
   }
 
-  sprites.push(getBackground());
+  const background = getBackground();
+  sprites.push(background);
 
   function drawScore() {
     context.font = "16px Arial";
@@ -223,7 +226,7 @@ import { getMarty } from "./entities/marty";
     if (marty.dying) {
       location.reload();
     } else if (marty.level2) {
-      (console.log("NEXT LEVEL!"))
+      background.ttl = 0;
     }
   }
 
